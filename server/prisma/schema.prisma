@@ -1,0 +1,145 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Locality {
+  id          String   @id @default(uuid())
+  name        String
+  province_id String
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  province       Province        @relation(fields: [province_id], references: [id])
+  lost_reports   LostReport[]
+  medical_record MedicalRecord[]
+
+  @@unique([name, province_id])
+}
+
+model LostReport {
+  id                String    @id @default(uuid())
+  pet_id            String
+  last_seen_address String
+  last_seen_date    DateTime
+  province_id       String
+  locality_id       String
+  is_active         Boolean   @default(true)
+  comments          String?
+  finder_name       String?
+  finder_phone      String?
+  finder_email      String?
+  found_date        DateTime?
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
+
+  pet           Pet            @relation(fields: [pet_id], references: [id])
+  province      Province       @relation(fields: [province_id], references: [id])
+  locality      Locality       @relation(fields: [locality_id], references: [id])
+  notifications Notification[]
+}
+
+model MedicalDocument {
+  id                String   @id @default(uuid())
+  medical_record_id String
+  file_name         String
+  file_url          String?
+  file_type         String?
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  medical_record MedicalRecord @relation(fields: [medical_record_id], references: [id])
+}
+
+model MedicalRecord {
+  id          String   @id @default(uuid())
+  pet_id      String
+  date        DateTime
+  description String
+  vet_name    String?
+  clinic      String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  locality_id String?
+  province_id String?
+
+  pet       Pet               @relation(fields: [pet_id], references: [id])
+  documents MedicalDocument[]
+  locality  Locality?         @relation(fields: [locality_id], references: [id])
+}
+
+model Notification {
+  id                String   @id @default(uuid())
+  user_id           String
+  lost_report_id    String?
+  notification_type String
+  message           String
+  is_read           Boolean  @default(false)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  user        User        @relation(fields: [user_id], references: [id])
+  lost_report LostReport? @relation(fields: [lost_report_id], references: [id])
+}
+
+model Pet {
+  id                String    @id @default(uuid())
+  name              String
+  species           String
+  breed             String?
+  color             String
+  distinctive_marks String?
+  birthdate         DateTime?
+  qr_code           String    @unique
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
+
+  users           User[]
+  medical_records MedicalRecord[]
+  lost_reports    LostReport[]
+  photos          PetPhoto[]
+}
+
+model PetPhoto {
+  id         String   @id @default(uuid())
+  pet_id     String
+  url        String
+  is_primary Boolean  @default(false)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  pet Pet @relation(fields: [pet_id], references: [id])
+}
+
+model Province {
+  id         String   @id @default(uuid())
+  name       String   @unique
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  localities  Locality[]
+  lost_report LostReport[]
+}
+
+model User {
+  id          String   @id @default(uuid())
+  name        String
+  email       String   @unique
+  phone       String
+  external_id String
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  pets          Pet[]
+  notifications Notification[]
+}
