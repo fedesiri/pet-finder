@@ -8,5 +8,9 @@
     "dev": "cd client && npm start & cd ../server && npm run start:dev",
     "prisma-generate": "cd server && npx prisma generate",
     "prisma-migrate": "cd server && npx prisma migrate dev"
+  },
+  "dependencies": {
+    "@faker-js/faker": "^9.6.0",
+    "axios": "^1.8.4"
   }
 }
