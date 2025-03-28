@@ -32,7 +32,7 @@ async function fetchProvinces(): Promise<{ name: string }[]> {
 async function fetchLocalities(
   provinceName: string,
 ): Promise<{ name: string; provinceName: string }[]> {
-  let allLocalities: { name: string; provinceName: string }[] = [];
+  const allLocalities: { name: string; provinceName: string }[] = [];
   let page = 1;
   const perPage = 100;
 
