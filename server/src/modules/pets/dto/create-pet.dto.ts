@@ -1,12 +1,53 @@
+import { Species } from '@prisma/client';
 import {
   ArrayMinSize,
   IsArray,
+  IsBoolean,
   IsDateString,
+  IsEnum,
   IsOptional,
   IsString,
+  IsUUID,
   Matches,
+  ValidateNested,
 } from 'class-validator';
 
+export class AddressDto {
+  @IsString()
+  street: string;
+
+  @IsString()
+  number: string;
+
+  @IsString()
+  @IsOptional()
+  apartment?: string;
+
+  @IsString()
+  @IsOptional()
+  neighborhood?: string;
+
+  @IsString()
+  @IsOptional()
+  @Matches(/^\d{4,10}$/, {
+    message: 'zip_code must be between 4 and 10 digits',
+  })
+  zip_code?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  is_primary?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  show_address?: boolean;
+
+  @IsUUID()
+  province_id: string;
+
+  @IsUUID()
+  locality_id: string;
+}
 export class CreateUserDto {
   @IsString()
   name: string;
@@ -16,14 +57,22 @@ export class CreateUserDto {
 
   @IsString()
   phone: string;
+
+  @IsString()
+  password: string;
+
+  @IsArray()
+  @IsOptional()
+  @ValidateNested({ each: true })
+  addresses?: AddressDto[];
 }
 
 export class CreatePetDto {
   @IsString()
   name: string;
 
-  @IsString()
-  species: string;
+  @IsEnum(Species)
+  species: Species;
 
   @IsString()
   @IsOptional()

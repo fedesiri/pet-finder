@@ -13,6 +13,26 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Address {
+  id           String   @id @default(uuid())
+  user_id      String
+  street       String
+  number       String
+  apartment    String?
+  neighborhood String?
+  zip_code     String?
+  is_primary   Boolean  @default(true)
+  show_address Boolean  @default(false)
+  province_id  String
+  locality_id  String
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  user     User     @relation(fields: [user_id], references: [id])
+  province Province @relation(fields: [province_id], references: [id])
+  locality Locality @relation(fields: [locality_id], references: [id])
+}
+
 model Locality {
   id          String   @id @default(uuid())
   name        String
@@ -20,9 +40,10 @@ model Locality {
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
 
-  province       Province        @relation(fields: [province_id], references: [id])
-  lost_reports   LostReport[]
-  medical_record MedicalRecord[]
+  province        Province        @relation(fields: [province_id], references: [id])
+  lost_reports    LostReport[]
+  medical_records MedicalRecord[]
+  addresses       Address[]
 
   @@unique([name, province_id])
 }
@@ -95,7 +116,7 @@ model Notification {
 model Pet {
   id                String    @id @default(uuid())
   name              String
-  species           String
+  species           Species
   breed             String?
   color             String
   distinctive_marks String?
@@ -129,12 +150,21 @@ model Province {
 
   localities  Locality[]
   lost_report LostReport[]
+  addresses   Address[]
+}
+
+enum Species {
+  DOG
+  CAT
+  BIRD
+  OTHER
 }
 
 model User {
   id          String   @id @default(uuid())
   name        String
   email       String   @unique
+  password    String
   phone       String
   external_id String
   created_at  DateTime @default(now())
@@ -142,4 +172,5 @@ model User {
 
   pets          Pet[]
   notifications Notification[]
+  addresses     Address[]
 }

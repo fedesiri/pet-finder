@@ -23,6 +23,17 @@ export class PetsService {
       throw new PetsError('PET-600');
     }
 
+    users.forEach((user) => {
+      if (user.addresses && user.addresses.length > 0) {
+        const primary_addresses = user.addresses.filter(
+          (addr) => addr.is_primary,
+        );
+        if (primary_addresses.length === 0) {
+          user.addresses[0].is_primary = true;
+        }
+      }
+    });
+
     const result = await this.petsRepository.createUserWithPetTransaction({
       users,
       pet,

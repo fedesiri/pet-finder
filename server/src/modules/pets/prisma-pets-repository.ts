@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { LostReport } from '@prisma/client';
+import { LostReport, Species } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 import * as dayjs from 'dayjs';
 import { DatabaseService } from 'src/helpers/database.service';
 import {
@@ -36,17 +37,37 @@ export class PetsRepository {
             where: {
               OR: [{ email }, { phone }],
             },
+            include: { addresses: true },
           });
 
           if (existingUser) return existingUser;
 
-          return prisma.user.create({
+          // Crear usuario
+          const user = await prisma.user.create({
             data: {
               name,
               email: email || `temp-${dayjs().toISOString()}@example.com`,
               phone,
               external_id: `temp-${dayjs().toISOString()}`,
+              password: await bcrypt.hash(user_data.password, 10),
             },
+          });
+
+          // Crear direcciones si existen
+          if (user_data.addresses.length > 0) {
+            await prisma.address.createMany({
+              data: user_data.addresses.map((address) => ({
+                ...address,
+                user_id: user.id,
+                is_primary: address.is_primary ?? false,
+                show_address: address.show_address ?? false,
+              })),
+            });
+          }
+
+          return prisma.user.findUnique({
+            where: { id: user.id },
+            include: { addresses: true },
           });
         }),
       );
@@ -70,6 +91,10 @@ export class PetsRepository {
         }
 
         birthdate = parsed_date.toDate();
+      }
+
+      if (!Object.values(Species).includes(input.pet.species)) {
+        throw new PetsError('PET-601');
       }
 
       // 3. Crear mascota

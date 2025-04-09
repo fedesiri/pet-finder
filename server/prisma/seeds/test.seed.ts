@@ -10,6 +10,7 @@ const NUM_TEST_PETS = 20;
 const NUM_TEST_MEDICAL_RECORDS = 30;
 const NUM_TEST_LOST_REPORTS = 15;
 const NUM_TEST_NOTIFICATIONS = 40;
+const NUM_ADDRESSES_PER_USER = 1;
 
 // --- Funciones generadoras de datos ---
 function generateUser() {
@@ -17,21 +18,40 @@ function generateUser() {
     name: faker.person.fullName(),
     email: faker.internet.email(),
     phone: faker.phone.number(),
+    password: '$2b$10$EXAMPLEHASHEDPASSWORD',
     external_id: faker.string.uuid(),
   };
 }
 
+function generateAddress(
+  userId: string,
+  provinceId: string,
+  localityId: string,
+  isPrimary: boolean,
+) {
+  return {
+    user_id: userId,
+    street: faker.location.street(),
+    number: faker.number.int({ min: 100, max: 5000 }).toString(),
+    apartment: faker.helpers.arrayElement([
+      null,
+      `#${faker.number.int({ min: 1, max: 20 })}`,
+    ]),
+    neighborhood: faker.location.county(),
+    zip_code: faker.location.zipCode(),
+    is_primary: isPrimary,
+    show_address: faker.datatype.boolean({ probability: 0.7 }),
+    province_id: provinceId,
+    locality_id: localityId,
+  };
+}
+
 function generatePet(userIds: string[]) {
-  const species = faker.helpers.arrayElement([
-    'Perro',
-    'Gato',
-    'Conejo',
-    'Tortuga',
-  ]);
+  const species = faker.helpers.arrayElement(['DOG', 'CAT', 'BIRD', 'OTHER']);
 
   let breed: string | null = null;
-  if (species === 'Perro') breed = faker.animal.dog();
-  if (species === 'Gato') breed = faker.animal.cat();
+  if (species === 'DOG') breed = faker.animal.dog();
+  if (species === 'CAT') breed = faker.animal.cat();
 
   return {
     name: faker.person.firstName(),
@@ -120,13 +140,45 @@ function generateNotification(userId: string, lostReportId?: string) {
 }
 
 // --- Funciones principales optimizadas ---
-async function createUsers() {
-  console.log('👥 Creando usuarios...');
-  const users = await Promise.all(
-    Array.from({ length: NUM_TEST_USERS }, () =>
-      prisma.user.create({ data: generateUser() }),
-    ),
-  );
+async function createUsersWithAddresses() {
+  console.log('👥 Creando usuarios con direcciones...');
+
+  // Obtener algunas provincias y localidades existentes
+  const provinces = await prisma.province.findMany({ take: 3 });
+  const localities = await prisma.locality.findMany({
+    where: {
+      province_id: { in: provinces.map((p) => p.id) },
+    },
+    take: 10,
+  });
+
+  const users = [];
+
+  for (let i = 0; i < NUM_TEST_USERS; i++) {
+    const user = await prisma.user.create({
+      data: generateUser(),
+    });
+
+    // Crear direcciones para el usuario
+    const userLocalities = faker.helpers.arrayElements(
+      localities,
+      NUM_ADDRESSES_PER_USER,
+    );
+
+    await prisma.address.createMany({
+      data: userLocalities.map((locality, index) =>
+        generateAddress(
+          user.id,
+          locality.province_id,
+          locality.id,
+          index === 0, // La primera dirección es primaria
+        ),
+      ),
+    });
+
+    users.push(user);
+  }
+
   return users;
 }
 
@@ -227,7 +279,7 @@ export async function seedTestData() {
     }
 
     // 1. Crear usuarios
-    const users = await createUsers();
+    const users = await createUsersWithAddresses();
     const userIds = users.map((u) => u.id);
 
     // 2. Crear mascotas con fotos
