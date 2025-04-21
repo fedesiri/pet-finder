@@ -20,16 +20,16 @@ export const getSpecies = async () => {
   return response.data.data;
 };
 
-export const getProvinces = async (search = "") => {
+export const getProvinces = async ({ page = 1, items_per_page = 10, search }) => {
   const response = await api.get("/provinces", {
-    params: { search },
+    params: { search, page, items_per_page },
   });
-  return response.data.data;
+  return response.data;
 };
 
-export const getLocalities = async (provinceId, search = "") => {
+export const getLocalities = async (provinceId, { page = 1, items_per_page = 10, search }) => {
   const response = await api.get(`/provinces/${provinceId}/localities`, {
-    params: { search },
+    params: { search, page, items_per_page },
   });
-  return response.data.data;
+  return response.data;
 };
