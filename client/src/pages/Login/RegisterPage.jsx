@@ -1,14 +1,33 @@
-import { Button, Card, Col, DatePicker, Form, Input, message, Row, Select, Steps, Typography, Upload } from "antd";
-import React, { useState } from "react";
+import {
+  Alert,
+  Button,
+  Card,
+  Checkbox,
+  Col,
+  DatePicker,
+  Form,
+  Input,
+  message,
+  Row,
+  Select,
+  Spin,
+  Steps,
+  Typography,
+  Upload,
+} from "antd";
+import dayjs from "dayjs";
+import React, { useEffect, useState } from "react";
 import {
   FaArrowLeft,
   FaArrowRight,
   FaCheck,
+  FaCity,
   FaEnvelope,
   FaHome,
   FaIdCard,
   FaImages,
   FaLock,
+  FaMapMarkerAlt,
   FaPaw,
   FaPhone,
   FaUpload,
@@ -16,17 +35,122 @@ import {
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import PetLogo from "../../components/ui/PetLogo";
+import { getLocalities, getProvinces, getSpecies } from "../../services/api";
+
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../credentials";
+
 
 const { Step } = Steps;
 const { Title } = Typography;
 const { Option } = Select;
+const { TextArea } = Input;
 
 export default function RegisterPage() {
   const [form] = Form.useForm();
   const [current, setCurrent] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [messageApi, contextHolder] = message.useMessage();
+  //relacionado a provincias y localidades
+  const [provinces, setProvinces] = useState([]);
+  const [localities, setLocalities] = useState([]);
+  const [selectedProvince, setSelectedProvince] = useState(null);
+  const [loadingProvinces, setLoadingProvinces] = useState(false);
+  const [loadingLocalities, setLoadingLocalities] = useState(false);
+  const [searchProvince, setSearchProvince] = useState("");
+  const [searchLocality, setSearchLocality] = useState("");
+
   const navigate = useNavigate();
+
   const [petPhotos, setPetPhotos] = useState([]);
+
+  //relacionado a species
+  const [speciesOptions, setSpeciesOptions] = useState([]);
+  const [loadingSpecies, setLoadingSpecies] = useState(true);
+  const [errorSpecies, setErrorSpecies] = useState(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const loadProvinces = async () => {
+        setLoadingProvinces(true);
+        try {
+          const data = await getProvinces(searchProvince);
+          setProvinces(data);
+        } catch (error) {
+          messageApi.open({
+                  type: "error",
+                  content: "Error buscando provincias :" + error.message,
+                });
+      
+        } finally {
+          setLoadingProvinces(false);
+        }
+      };
+      loadProvinces();
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchProvince]);
+
+  useEffect(() => {
+    const loadLocalities = async () => {
+      if (!selectedProvince) return;
+
+      setLoadingLocalities(true);
+      try {
+        const data = await getLocalities(selectedProvince, searchLocality);
+        setLocalities(data);
+      } catch (error) {
+        messageApi.open({
+          type: "error",
+          content: "Error cargando localidades: " + error.message,
+        });
+      } finally {
+        setLoadingLocalities(false);
+      }
+    };
+
+    const timer = setTimeout(() => {
+      loadLocalities();
+    }, 500); // Debounce para búsqueda
+
+    return () => clearTimeout(timer);
+  }, [selectedProvince, searchLocality]);
+
+  useEffect(() => {
+    const loadSpecies = async () => {
+      try {
+        const response = await getSpecies();
+        const options = response.values.map((value) => ({
+          value,
+          label: response.labels[value],
+        }));
+        setSpeciesOptions(options);
+      } catch (err) {
+        setErrorSpecies(err instanceof Error ? err : new Error("Error cargando especies"));
+      } finally {
+        setLoadingSpecies(false);
+      }
+    };
+
+    loadSpecies();
+  }, []);
+
+  if (loadingSpecies) return <Spin tip="Cargando especies..." />;
+  if (errorSpecies) return <Alert message={errorSpecies.message} type="error" />;
+
+  const handleProvinceSearch = async (value) => {
+    setSearchProvince(value);
+    try {
+      const data = await getProvinces(value);
+      setProvinces(data);
+    } catch (error) {
+      messageApi.open({
+        type: "error",
+        content: "Error buscando provincias: " + error.message,
+      });
+    }
+  };
 
   const steps = [
     {
@@ -39,13 +163,13 @@ export default function RegisterPage() {
       title: "Dueño",
       icon: <FaIdCard />,
       content: "Información personal",
-      fields: ["fullName", "phone", "address"],
+      fields: ["fullName", "phone", "address", "provinceId", "localityId"],
     },
     {
       title: "Mascota",
       icon: <FaPaw />,
       content: "Datos de la mascota",
-      fields: ["petName", "species", "color"],
+      fields: ["petName", "species", "breed", "color"],
     },
   ];
 
@@ -53,7 +177,7 @@ export default function RegisterPage() {
     form
       .validateFields(steps[current].fields)
       .then(() => setCurrent(current + 1))
-      .catch((err) => console.log("Validation failed:", err));
+      .catch((err) => console.error("Validation failed:", err));
   };
 
   const prev = () => {
@@ -64,13 +188,27 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       const payload = {
-        user: {
-          email: values.email,
-          password: values.password,
-          name: values.fullName,
-          phone: values.phone,
-          address: values.address,
-        },
+        users: [
+          {
+            email: values.email,
+            password: values.password,
+            name: values.fullName,
+            phone: values.phone,
+            addresses: [
+              {
+                street: values.address,
+                number: values.addressNumber,
+                apartment: values.apartment,
+                neighborhood: values.neighborhood,
+                zip_code: values.zipCode,
+                is_primary: true,
+                show_address: values.showAddress,
+                province_id: values.provinceId,
+                locality_id: values.localityId,
+              },
+            ],
+          },
+        ],
         pet: {
           name: values.petName,
           species: values.species,
@@ -80,25 +218,34 @@ export default function RegisterPage() {
           birthdate: values.birthdate?.format("YYYY-MM-DD"),
           photos: petPhotos,
         },
+        qr_code: `PET-${dayjs()}`,
       };
 
       console.log("Datos a enviar:", payload);
+      await createUserWithEmailAndPassword(auth, values.email, values.password);
       // await api.post('/register', payload);
 
       message.success("Registro completado exitosamente!");
+      messageApi.open({
+        type: "success",
+        content: "Registro completado exitosamente!",
+      });
       navigate("/login");
     } catch (error) {
-      message.error("Error en el registro: " + error.message);
+      messageApi.open({
+        type: "error",
+        content: "Error en el registro: " + error.message,
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  // Opciones para selects
-  const speciesOptions = ["Perro", "Gato", "Conejo", "Ave", "Otro"];
   const colorOptions = ["Blanco", "Negro", "Marrón", "Gris", "Atigrado", "Multicolor"];
 
   return (
+    <>
+    {contextHolder}
     <Card
       style={{
         width: "100%",
@@ -133,7 +280,7 @@ export default function RegisterPage() {
               </span>
             }
             rules={[
-              { required: true, message: "Por favor ingresa tu email" },
+              { required: true, message: "Por favor ingresá tu email" },
               { type: "email", message: "Email no válido" },
             ]}
           >
@@ -149,7 +296,7 @@ export default function RegisterPage() {
               </span>
             }
             rules={[
-              { required: true, message: "Por favor ingresa una contraseña" },
+              { required: true, message: "Por favor ingresá una contraseña" },
               { min: 8, message: "Mínimo 8 caracteres" },
             ]}
             hasFeedback
@@ -192,7 +339,7 @@ export default function RegisterPage() {
                 Nombre Completo
               </span>
             }
-            rules={[{ required: true, message: "Por favor ingresa tu nombre" }]}
+            rules={[{ required: true, message: "Por favor ingresá tu nombre" }]}
           >
             <Input placeholder="Ej: Juan Pérez" />
           </Form.Item>
@@ -206,24 +353,112 @@ export default function RegisterPage() {
               </span>
             }
             rules={[
-              { required: true, message: "Por favor ingresa tu teléfono" },
+              { required: true, message: "Por favor ingresá tu teléfono" },
               { pattern: /^[0-9+]+$/, message: "Solo números y +" },
             ]}
           >
             <Input placeholder="+5491122334455" />
           </Form.Item>
 
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="provinceId"
+                label={
+                  <span>
+                    <FaMapMarkerAlt style={{ marginRight: 8 }} />
+                    Provincia
+                  </span>
+                }
+                rules={[{ required: true, message: "Seleccioná una provincia" }]}
+              >
+                <Select
+                  placeholder="Seleccioná provincia"
+                  onChange={(value) => {
+                    setSelectedProvince(value);
+                    form.setFieldsValue({ localityId: undefined });
+                  }}
+                  showSearch
+                  optionFilterProp="children"
+                  loading={loadingProvinces}
+                  filterOption={false}
+                  onSearch={handleProvinceSearch}
+                >
+                  {provinces.map((province) => (
+                    <Option key={province.id} value={province.id}>
+                      {province.name}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="localityId"
+                label={
+                  <span>
+                    <FaCity style={{ marginRight: 8 }} />
+                    Localidad
+                  </span>
+                }
+                rules={[{ required: true, message: "Seleccioná una localidad" }]}
+              >
+                <Select
+                  placeholder={selectedProvince ? "Seleccioná localidad" : "Primero selecciona provincia"}
+                  disabled={!selectedProvince}
+                  showSearch
+                  optionFilterProp="children"
+                  loading={loadingLocalities}
+                  onSearch={setSearchLocality}
+                  filterOption={false}
+                >
+                  {localities.map((locality) => (
+                    <Option key={locality.id} value={locality.id}>
+                      {locality.name}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+
           <Form.Item
             name="address"
             label={
               <span>
                 <FaHome style={{ marginRight: 8 }} />
-                Dirección
+                Dirección completa
               </span>
             }
-            rules={[{ required: true, message: "Por favor ingresa tu dirección" }]}
+            rules={[{ required: true, message: "Por favor ingresá tu dirección" }]}
           >
-            <Input.TextArea placeholder="Calle, número, departamento" rows={2} />
+            <TextArea placeholder="Calle, número, departamento" rows={2} />
+          </Form.Item>
+
+          <Row gutter={16}>
+            <Col span={8}>
+              <Form.Item name="addressNumber" label="Número" rules={[{ required: true, message: "Ingresá el número" }]}>
+                <Input placeholder="1234" />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item name="apartment" label="Depto/Piso">
+                <Input placeholder="B" />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item name="zipCode" label="Código Postal">
+                <Input placeholder="C1430" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Form.Item name="neighborhood" label="Barrio">
+            <Input placeholder="Palermo" />
+          </Form.Item>
+
+          <Form.Item name="showAddress" valuePropName="checked" initialValue={false}>
+            <Checkbox>Mostrar dirección en el perfil público de la mascota</Checkbox>
           </Form.Item>
         </div>
 
@@ -246,13 +481,7 @@ export default function RegisterPage() {
             </Col>
             <Col span={12}>
               <Form.Item name="species" label="Especie" rules={[{ required: true, message: "Seleccioná una especie" }]}>
-                <Select placeholder="Seleccioná una especie">
-                  {speciesOptions.map((s) => (
-                    <Option key={s} value={s}>
-                      {s}
-                    </Option>
-                  ))}
-                </Select>
+                <Select placeholder="Selecciona" options={speciesOptions}></Select>
               </Form.Item>
             </Col>
           </Row>
@@ -375,5 +604,5 @@ export default function RegisterPage() {
         </Form.Item>
       </Form>
     </Card>
-  );
+    </>);
 }

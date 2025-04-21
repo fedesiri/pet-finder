@@ -12,6 +12,24 @@ export const getPets = async () => {
 
 export const getPetByQrCode = async (qr_code) => {
   const response = await api.get(`/pets/qr/${qr_code}`);
-  console.log("responbse en apiii front ", response.data);
   return response.data;
+};
+
+export const getSpecies = async () => {
+  const response = await api.get("/pets/species");
+  return response.data.data;
+};
+
+export const getProvinces = async (search = "") => {
+  const response = await api.get("/provinces", {
+    params: { search },
+  });
+  return response.data.data;
+};
+
+export const getLocalities = async (provinceId, search = "") => {
+  const response = await api.get(`/provinces/${provinceId}/localities`, {
+    params: { search },
+  });
+  return response.data.data;
 };
