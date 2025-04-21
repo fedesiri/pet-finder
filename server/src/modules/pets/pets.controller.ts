@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { LostReport, Prisma } from '@prisma/client';
+import { LostReport, Prisma, Species } from '@prisma/client';
 import { Envelope } from 'src/types/envelope.type';
 import {
   RegisterOutputDto,
@@ -90,6 +90,45 @@ export class PetsController {
         error instanceof Error
           ? error
           : new Error('Error in pets/:id/lost controller');
+      console.error(error);
+      return response;
+    }
+  }
+
+  @Get('species')
+  async getSpecies(): Promise<
+    Envelope<{ values: string[]; labels: Record<string, string> }>
+  > {
+    const response: Envelope<{
+      values: string[];
+      labels: Record<string, string>;
+    }> = {
+      success: true,
+      data: null,
+      error: null,
+      pagination: null,
+    };
+    try {
+      const enum_values = Object.values(Species).filter(
+        (v): v is Species => typeof v === 'string',
+      );
+
+      response.data = {
+        values: enum_values,
+        labels: {
+          DOG: 'Perro',
+          CAT: 'Gato',
+          BIRD: 'Ave',
+          OTHER: 'Otro',
+        },
+      };
+      return response;
+    } catch (error) {
+      response.success = false;
+      response.error =
+        error instanceof Error
+          ? error
+          : new Error('Error in pets/species controller');
       console.error(error);
       return response;
     }
