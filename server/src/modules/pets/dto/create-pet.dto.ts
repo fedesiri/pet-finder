@@ -61,6 +61,9 @@ export class CreateUserDto {
   @IsString()
   password: string;
 
+  @IsString()
+  external_id: string;
+
   @IsArray()
   @IsOptional()
   @ValidateNested({ each: true })

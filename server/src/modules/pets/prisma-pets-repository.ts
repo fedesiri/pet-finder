@@ -31,11 +31,11 @@ export class PetsRepository {
       // 1. Crear dueños
       const created_users = await Promise.all(
         input.users.map(async (user_data) => {
-          const { name, email, phone } = user_data;
+          const { name, email, phone, external_id } = user_data;
 
           const existingUser = await prisma.user.findFirst({
             where: {
-              OR: [{ email }, { phone }],
+              OR: [{ email }, { phone }, { external_id }],
             },
             include: { addresses: true },
           });
@@ -48,7 +48,7 @@ export class PetsRepository {
               name,
               email: email || `temp-${dayjs().toISOString()}@example.com`,
               phone,
-              external_id: `temp-${dayjs().toISOString()}`,
+              external_id,
               password: await bcrypt.hash(user_data.password, 10),
             },
           });

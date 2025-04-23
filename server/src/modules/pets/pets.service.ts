@@ -23,6 +23,10 @@ export class PetsService {
       throw new PetsError('PET-600');
     }
 
+    if (!users.some((user) => user.external_id)) {
+      throw new PetsError('PET-602');
+    }
+
     users.forEach((user) => {
       if (user.addresses && user.addresses.length > 0) {
         const primary_addresses = user.addresses.filter(

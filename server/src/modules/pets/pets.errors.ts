@@ -13,6 +13,7 @@ export class PetsError extends PetFinderError {
 const dictionary = {
   'PET-600': 'QR already exist',
   'PET-601': `Invalid specie. Valid values: ${SPECIES_STRING}`,
+  'PET-602': 'Auth with Firebase is required',
   'PET-700': `Year must be between 2000 and ${dayjs().year()}`,
   'PET-701': 'Invalid date. Must be YYYY-MM-DD format.',
   'PET-800': 'qr_code is allowed.',

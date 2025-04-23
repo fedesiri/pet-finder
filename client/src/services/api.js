@@ -33,3 +33,18 @@ export const getLocalities = async (provinceId, { page = 1, items_per_page = 10,
   });
   return response.data;
 };
+
+export const registerPetWithUser = async (data) => {
+  try {
+    const response = await api.post("/pets/register", data);
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw new Error(error.response.data.error || "Error en el registro");
+    } else if (error.request) {
+      throw new Error("No se recibió respuesta del servidor");
+    } else {
+      throw new Error("Error al configurar la solicitud");
+    }
+  }
+};

@@ -35,7 +35,7 @@ import {
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import PetLogo from "../../components/ui/PetLogo";
-import { getSpecies } from "../../services/api";
+import { getSpecies, registerPetWithUser } from "../../services/api";
 
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../credentials";
@@ -130,6 +130,7 @@ export default function RegisterPage() {
   const onFinish = async (values) => {
     setLoading(true);
     try {
+      const firebaseUser = await createUserWithEmailAndPassword(auth, values.email, values.password);
       const payload = {
         users: [
           {
@@ -137,6 +138,7 @@ export default function RegisterPage() {
             password: values.password,
             name: values.fullName,
             phone: values.phone,
+            external_id: firebaseUser.user.uid,
             addresses: [
               {
                 street: values.address,
@@ -159,16 +161,13 @@ export default function RegisterPage() {
           color: values.color,
           distinctive_marks: values.distinctiveMarks,
           birthdate: values.birthdate?.format("YYYY-MM-DD"),
-          photos: petPhotos,
+          // photos: petPhotos ?? undefined, trabajar sobre esto con la implementacion de firebase
         },
         qr_code: `PET-${dayjs()}`,
       };
+      console.log(payload);
+      await registerPetWithUser(payload);
 
-      console.log("Datos a enviar:", payload);
-      await createUserWithEmailAndPassword(auth, values.email, values.password);
-      // await api.post('/register', payload);
-
-      message.success("Registro completado exitosamente!");
       messageApi.open({
         type: "success",
         content: "Registro completado exitosamente!",
