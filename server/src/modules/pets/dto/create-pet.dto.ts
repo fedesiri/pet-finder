@@ -7,8 +7,10 @@ import {
   IsEnum,
   IsOptional,
   IsString,
+  IsUrl,
   IsUUID,
   Matches,
+  MaxLength,
   ValidateNested,
 } from 'class-validator';
 
@@ -87,6 +89,13 @@ export class CreatePetDto {
   @IsString()
   @IsOptional()
   distinctive_marks?: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsUrl({}, { each: true, message: 'Each photo must be a valid URL' })
+  @MaxLength(5, { message: 'Maximum 5 photos allowed' })
+  @IsOptional()
+  photos?: string[];
 
   @IsDateString()
   @IsOptional()

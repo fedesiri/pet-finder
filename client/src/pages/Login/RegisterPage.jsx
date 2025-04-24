@@ -37,8 +37,9 @@ import { useNavigate } from "react-router-dom";
 import PetLogo from "../../components/ui/PetLogo";
 import { getSpecies, registerPetWithUser } from "../../services/api";
 
+import { getDownloadURL, ref, uploadBytes } from "@firebase/storage";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../credentials";
+import { auth, storage } from "../../credentials";
 import { useProvincesAndLocalities } from "../../hooks/useProvincesAndLocalities";
 
 const { Step } = Steps;
@@ -127,9 +128,60 @@ export default function RegisterPage() {
     setCurrent(current - 1);
   };
 
+  const handleImageUpload = async (file) => {
+    try {
+      // Crea una referencia única para cada imagen
+      const safeFileName = file.name.replace(/[^\w.-]/g, "_");
+      const storageRef = ref(storage, `pets/${dayjs()}_${safeFileName}`);
+      // Sube el archivo con el tipo MIME correcto
+      const metadata = {
+        contentType: file.type,
+      };
+
+      const snapshot = await uploadBytes(storageRef, file, metadata);
+      return await getDownloadURL(snapshot.ref);
+    } catch (error) {
+      console.error("Error detallado:", error);
+      messageApi.error(`Error al subir imagen: ${error.message}`);
+      throw error;
+    }
+  };
+
+  const handleBeforeUpload = (file) => {
+    // Validaciones básicas
+    const isImage = file.type.startsWith("image/");
+    if (!isImage) {
+      messageApi.error("Solo puedes subir imágenes!");
+      return Upload.LIST_IGNORE;
+    }
+
+    const isLt5MB = file.size / 1024 / 1024 < 5;
+    if (!isLt5MB) {
+      messageApi.error("La imagen debe ser menor a 5MB!");
+      return Upload.LIST_IGNORE;
+    }
+
+    return true;
+  };
+
+  const handleUploadChange = async ({ fileList }) => {
+    // Filtra solo los archivos que no están en estado de error
+    // const validFiles = fileList.filter(file => !file.error);
+    setPetPhotos(fileList);
+  };
+
   const onFinish = async (values) => {
     setLoading(true);
     try {
+      const photoUrls = await Promise.all(
+        petPhotos.map((file) => {
+          if (file.originFileObj) {
+            return handleImageUpload(file.originFileObj);
+          }
+          return file.url; // Si ya tiene URL (previamente subida)
+        })
+      );
+
       const firebaseUser = await createUserWithEmailAndPassword(auth, values.email, values.password);
       const payload = {
         users: [
@@ -161,11 +213,11 @@ export default function RegisterPage() {
           color: values.color,
           distinctive_marks: values.distinctiveMarks,
           birthdate: values.birthdate?.format("YYYY-MM-DD"),
-          // photos: petPhotos ?? undefined, trabajar sobre esto con la implementacion de firebase
+          photos: photoUrls.filter((url) => url),
         },
         qr_code: `PET-${dayjs()}`,
       };
-      console.log(payload);
+
       await registerPetWithUser(payload);
 
       messageApi.open({
@@ -513,9 +565,14 @@ export default function RegisterPage() {
               <Upload
                 listType="picture-card"
                 fileList={petPhotos}
-                onChange={({ fileList }) => setPetPhotos(fileList)}
-                beforeUpload={() => false}
+                onChange={handleUploadChange}
+                beforeUpload={(file) => {
+                  const isValid = handleBeforeUpload(file);
+                  return isValid === true ? false : isValid; // false = no subir automáticamente
+                }}
                 maxCount={5}
+                multiple
+                accept="image/*"
               >
                 {petPhotos.length >= 5 ? null : (
                   <div>

@@ -1,3 +1,4 @@
+import { Spin } from "antd";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { createContext, useEffect, useState } from "react";
 import { appFirebase } from "../credentials";
@@ -19,7 +20,7 @@ export function AuthProvider({ children }) {
   }, [auth]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <Spin></Spin>;
   }
 
   return <AuthContext.Provider value={{ user }}>{children}</AuthContext.Provider>;

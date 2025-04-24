@@ -106,6 +106,15 @@ export class PetsRepository {
           users: {
             connect: created_users.map((user) => ({ id: user.id })),
           },
+          photos:
+            input.pet.photos && input.pet.photos.length > 0
+              ? {
+                  create: input.pet.photos.map((url, index) => ({
+                    url,
+                    is_primary: index === 0,
+                  })),
+                }
+              : undefined,
         },
         select: {
           id: true,
