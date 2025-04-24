@@ -1,5 +1,4 @@
 import {
-  Alert,
   Button,
   Card,
   Checkbox,
@@ -10,13 +9,12 @@ import {
   message,
   Row,
   Select,
-  Spin,
   Steps,
   Typography,
-  Upload,
+  Upload
 } from "antd";
 import dayjs from "dayjs";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   FaArrowLeft,
   FaArrowRight,
@@ -35,12 +33,13 @@ import {
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import PetLogo from "../../components/ui/PetLogo";
-import { getSpecies, registerPetWithUser } from "../../services/api";
+import { registerPetWithUser } from "../../services/api";
 
 import { getDownloadURL, ref, uploadBytes } from "@firebase/storage";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, storage } from "../../credentials";
 import { useProvincesAndLocalities } from "../../hooks/useProvincesAndLocalities";
+import { useSpecies } from "../../hooks/useSpecies";
 
 const { Step } = Steps;
 const { Title } = Typography;
@@ -70,32 +69,8 @@ export default function RegisterPage() {
   const [petPhotos, setPetPhotos] = useState([]);
 
   //relacionado a species
-  const [speciesOptions, setSpeciesOptions] = useState([]);
-  const [loadingSpecies, setLoadingSpecies] = useState(true);
-  const [errorSpecies, setErrorSpecies] = useState(null);
-
-  useEffect(() => {
-    const loadSpecies = async () => {
-      try {
-        const response = await getSpecies();
-        const options = response.values.map((value) => ({
-          value,
-          label: response.labels[value],
-        }));
-        setSpeciesOptions(options);
-      } catch (err) {
-        setErrorSpecies(err instanceof Error ? err : new Error("Error cargando especies"));
-      } finally {
-        setLoadingSpecies(false);
-      }
-    };
-
-    loadSpecies();
-  }, []);
-
-  if (loadingSpecies) return <Spin tip="Cargando especies..." />;
-  if (errorSpecies) return <Alert message={errorSpecies.message} type="error" />;
-
+  const { speciesOptions } = useSpecies();
+  
   const steps = [
     {
       title: "Cuenta",
@@ -107,25 +82,41 @@ export default function RegisterPage() {
       title: "Dueño",
       icon: <FaIdCard />,
       content: "Información personal",
-      fields: ["fullName", "phone", "address", "provinceId", "localityId"],
+      fields: ["fullName", "phone", "address", "addressNumber", "provinceId", "localityId"],
     },
     {
       title: "Mascota",
       icon: <FaPaw />,
       content: "Datos de la mascota",
-      fields: ["petName", "species", "breed", "color"],
+      fields: [],
+      requiredFields: ["petName", "species", "color"],
     },
   ];
 
   const next = () => {
-    form
-      .validateFields(steps[current].fields)
-      .then(() => setCurrent(current + 1))
-      .catch((err) => console.error("Validation failed:", err));
+    const currentStep = steps[current];
+
+    if (current < steps.length - 1) {
+      form
+        .validateFields(currentStep.fields)
+        .then(() => setCurrent(current + 1))
+        .catch(() => {});
+    } else {
+      setCurrent(current + 1);
+    }
   };
 
   const prev = () => {
     setCurrent(current - 1);
+  };
+
+  const handleFinalSubmit = () => {
+    form
+      .validateFields(steps[2].requiredFields)
+      .then(() => form.submit())
+      .catch(() => {
+        message.error("Completá los campos obligatorios");
+      });
   };
 
   const handleImageUpload = async (file) => {
@@ -142,7 +133,10 @@ export default function RegisterPage() {
       return await getDownloadURL(snapshot.ref);
     } catch (error) {
       console.error("Error detallado:", error);
-      messageApi.error(`Error al subir imagen: ${error.message}`);
+      messageApi.open({
+        type: "error",
+        content: "Error al subir imagen: " + error.message,
+      });
       throw error;
     }
   };
@@ -151,13 +145,19 @@ export default function RegisterPage() {
     // Validaciones básicas
     const isImage = file.type.startsWith("image/");
     if (!isImage) {
-      messageApi.error("Solo puedes subir imágenes!");
+      messageApi.open({
+        type: "error",
+        content: "Sólo podés subir imagenes",
+      });
       return Upload.LIST_IGNORE;
     }
 
     const isLt5MB = file.size / 1024 / 1024 < 5;
     if (!isLt5MB) {
-      messageApi.error("La imagen debe ser menor a 5MB!");
+      messageApi.open({
+        type: "error",
+        content: "La imagen debe ser menor a 5MB!",
+      });
       return Upload.LIST_IGNORE;
     }
 
@@ -166,7 +166,6 @@ export default function RegisterPage() {
 
   const handleUploadChange = async ({ fileList }) => {
     // Filtra solo los archivos que no están en estado de error
-    // const validFiles = fileList.filter(file => !file.error);
     setPetPhotos(fileList);
   };
 
@@ -189,7 +188,7 @@ export default function RegisterPage() {
             email: values.email,
             password: values.password,
             name: values.fullName,
-            phone: values.phone,
+            phone: `${values.phonePrefix}${values.phone}`,
             external_id: firebaseUser.user.uid,
             addresses: [
               {
@@ -339,19 +338,40 @@ export default function RegisterPage() {
             </Form.Item>
 
             <Form.Item
-              name="phone"
               label={
                 <span>
                   <FaPhone style={{ marginRight: 8 }} />
                   Teléfono
                 </span>
               }
-              rules={[
-                { required: true, message: "Por favor ingresá tu teléfono" },
-                { pattern: /^[0-9+]+$/, message: "Solo números y +" },
-              ]}
+              required
             >
-              <Input placeholder="+5491122334455" />
+              <Row gutter={8}>
+                <Col span={4}>
+                  <Form.Item name="phonePrefix" initialValue="+54" noStyle>
+                    <Input disabled />
+                  </Form.Item>
+                </Col>
+
+                <Col span={20}>
+                  <Form.Item
+                    name="phone"
+                    rules={[
+                      {
+                        required: true,
+                        message: "Ingresá código de área + número",
+                      },
+                      {
+                        pattern: /^[0-9]{8,12}$/,
+                        message: "Debe ser un número válido. Ejemplo: 1122334455",
+                      },
+                    ]}
+                    normalize={(value) => value.replace(/\D/g, "")}
+                  >
+                    <Input placeholder="1122334455" />
+                  </Form.Item>
+                </Col>
+              </Row>
             </Form.Item>
 
             <Row gutter={16}>
@@ -450,9 +470,30 @@ export default function RegisterPage() {
                 <Form.Item
                   name="addressNumber"
                   label="Número"
-                  rules={[{ required: true, message: "Ingresá el número" }]}
+                  rules={[
+                    { required: true, message: "Ingresá el número" },
+                    {
+                      pattern: /^[0-9]+$/,
+                      message: "Solo se permiten números",
+                    },
+                  ]}
                 >
-                  <Input placeholder="1234" />
+                  <Input
+                    placeholder="1234"
+                    onKeyDown={(e) => {
+                      // Permite: números, teclas de control (backspace, delete, tab)
+                      if (
+                        !/[0-9]/.test(e.key) &&
+                        !["Backspace", "Delete", "Tab", "ArrowLeft", "ArrowRight"].includes(e.key)
+                      ) {
+                        e.preventDefault();
+                      }
+                    }}
+                    onInput={(e) => {
+                      // Limpieza adicional por si pegan texto
+                      e.target.value = e.target.value.replace(/\D/g, "");
+                    }}
+                  />
                 </Form.Item>
               </Col>
               <Col span={8}>
@@ -468,7 +509,7 @@ export default function RegisterPage() {
             </Row>
 
             <Form.Item name="neighborhood" label="Barrio">
-              <Input placeholder="Palermo" />
+              <Input placeholder="Cancha de la liga" />
             </Form.Item>
 
             <Form.Item name="showAddress" valuePropName="checked" initialValue={false}>
@@ -489,6 +530,7 @@ export default function RegisterPage() {
                     </span>
                   }
                   rules={[{ required: true, message: "Ingresá el nombre" }]}
+                  validateTrigger={["onChange", "onBlur"]}
                 >
                   <Input placeholder="Ej: Firulais" />
                 </Form.Item>
@@ -498,6 +540,7 @@ export default function RegisterPage() {
                   name="species"
                   label="Especie"
                   rules={[{ required: true, message: "Seleccioná una especie" }]}
+                  validateTrigger={["onChange", "onBlur"]}
                 >
                   <Select placeholder="Selecciona" options={speciesOptions}></Select>
                 </Form.Item>
@@ -522,6 +565,7 @@ export default function RegisterPage() {
               rules={[{ required: true, message: "Ingresá el color" }]}
               getValueFromEvent={(value) => value.join(", ")} // Convierte array a string
               getValueProps={(value) => ({ value: value ? value.split(", ") : [] })}
+              validateTrigger={["onChange", "onBlur"]}
             >
               <Select mode="tags" style={{ width: "100%" }} placeholder="Seleccioná color/es" tokenSeparators={[","]}>
                 {colorOptions.map((color) => (
@@ -614,13 +658,13 @@ export default function RegisterPage() {
                 top: 0,
               }}
             >
-              {current < steps.length - 1 ? (
-                <Button type="primary" onClick={next} icon={<FaArrowRight />} size="large">
-                  Siguiente
+              {current === steps.length - 1 ? (
+                <Button type="primary" onClick={handleFinalSubmit} icon={<FaCheck />} loading={loading} size="large">
+                  Completar Registro
                 </Button>
               ) : (
-                <Button type="primary" htmlType="submit" loading={loading} icon={<FaCheck />} size="large">
-                  Completar Registro
+                <Button type="primary" onClick={next} icon={<FaArrowRight />} size="large">
+                  Siguiente
                 </Button>
               )}
             </div>
