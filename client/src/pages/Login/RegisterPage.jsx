@@ -11,7 +11,7 @@ import {
   Select,
   Steps,
   Typography,
-  Upload
+  Upload,
 } from "antd";
 import dayjs from "dayjs";
 import React, { useState } from "react";
@@ -36,7 +36,7 @@ import PetLogo from "../../components/ui/PetLogo";
 import { registerPetWithUser } from "../../services/api";
 
 import { getDownloadURL, ref, uploadBytes } from "@firebase/storage";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth, storage } from "../../credentials";
 import { useProvincesAndLocalities } from "../../hooks/useProvincesAndLocalities";
 import { useSpecies } from "../../hooks/useSpecies";
@@ -70,7 +70,7 @@ export default function RegisterPage() {
 
   //relacionado a species
   const { speciesOptions } = useSpecies();
-  
+
   const steps = [
     {
       title: "Cuenta",
@@ -182,6 +182,10 @@ export default function RegisterPage() {
       );
 
       const firebaseUser = await createUserWithEmailAndPassword(auth, values.email, values.password);
+      await updateProfile(firebaseUser.user, {
+        displayName: values.fullName,
+      });
+
       const payload = {
         users: [
           {
@@ -223,7 +227,7 @@ export default function RegisterPage() {
         type: "success",
         content: "Registro completado exitosamente!",
       });
-      navigate("/login");
+      navigate("/home");
     } catch (error) {
       messageApi.open({
         type: "error",

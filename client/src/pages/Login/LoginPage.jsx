@@ -21,7 +21,7 @@ export default function LoginPage() {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigate("/");
+      navigate("/home");
     } catch (error) {
       console.error(error);
       messageApi.open({
