@@ -53,6 +53,8 @@ function generatePet(userIds: string[]) {
   if (species === 'DOG') breed = faker.animal.dog();
   if (species === 'CAT') breed = faker.animal.cat();
 
+  const petCodeId = faker.string.uuid();
+
   return {
     name: faker.person.firstName(),
     species,
@@ -71,7 +73,12 @@ function generatePet(userIds: string[]) {
       ])}`,
     ]),
     birthdate: faker.date.past({ years: 15 }),
-    qr_code: `PET-${faker.string.alphanumeric(10).toUpperCase()}`,
+    pet_code: {
+      create: {
+        id: petCodeId,
+        activated_date: faker.date.recent(),
+      },
+    },
     users: {
       connect: { id: faker.helpers.arrayElement(userIds) },
     },
@@ -188,16 +195,27 @@ async function createPetsWithPhotos(userIds: string[]) {
 
   for (let i = 0; i < NUM_TEST_PETS; i++) {
     const pet = await prisma.pet.create({
-      data: generatePet(userIds),
-    });
-
-    await prisma.petPhoto.createMany({
-      data: [
-        generatePetPhoto(pet.id, true),
-        ...Array.from({ length: faker.number.int({ min: 1, max: 3 }) }, () =>
-          generatePetPhoto(pet.id, false),
-        ),
-      ],
+      data: {
+        ...generatePet(userIds),
+        photos: {
+          create: [
+            {
+              url: faker.image.urlLoremFlickr({ category: 'animals' }),
+              is_primary: true,
+            },
+            ...Array.from(
+              { length: faker.number.int({ min: 1, max: 3 }) },
+              () => ({
+                url: faker.image.urlLoremFlickr({ category: 'animals' }),
+                is_primary: false,
+              }),
+            ),
+          ],
+        },
+      },
+      include: {
+        photos: true,
+      },
     });
 
     pets.push(pet);
