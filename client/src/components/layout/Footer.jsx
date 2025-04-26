@@ -2,14 +2,18 @@ import { MailOutlined } from "@ant-design/icons";
 import { Layout } from "antd";
 import dayjs from "dayjs";
 import { FaInstagram, FaWhatsapp } from "react-icons/fa";
+import { useLocation } from "react-router-dom";
 
 const { Footer: AntFooter } = Layout;
 
 export default function Footer() {
+  const location = useLocation();
+  const isLandingPage = location.pathname === "/";
+
   return (
     <AntFooter
       style={{
-        background: "transparent",
+        background:  isLandingPage ? "transparent" : "#000" ,
         color: "white",
         padding: "20px 20px",
         textAlign: "center",

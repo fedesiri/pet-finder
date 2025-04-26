@@ -3,6 +3,7 @@ import React, { useContext } from "react";
 import { FaCog, FaPaw, FaPlus, FaSearch, FaSignOutAlt, FaUser } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
+import Footer from "../../components/layout/Footer";
 
 const { Title, Text } = Typography;
 
@@ -112,8 +113,8 @@ const HomePage = () => {
           icon: <FaSignOutAlt style={{ marginRight: "8px" }} />,
           label: "Cerrar sesión",
           onClick: () => {
-            logout(); // Llama a la función de logout
-            navigate("/"); // Redirige al login
+            logout();
+            navigate("/");
           },
         },
       ]}
@@ -121,31 +122,24 @@ const HomePage = () => {
   );
 
   return (
-    <div style={{ padding: "24px" }}>
+    <>
       <Row justify="space-between" align="middle" style={{ marginBottom: "24px" }}>
         <Col>
           <Title level={3}>
             <Space>
-              <FaPaw /> {/* Icono de mascota */}
+              <FaPaw />
               Mascotas perdidas cerca de ti
             </Space>
           </Title>
         </Col>
         <Col>
           <Space size="middle">
-            <Button
-              type="primary"
-              icon={<FaPlus />} // Icono de FontAwesome
-              onClick={() => navigate("/report-pet")}
-            >
+            <Button type="primary" icon={<FaPlus />} onClick={() => navigate("/report-pet")}>
               Reportar mascota
             </Button>
             <Dropdown overlay={userMenu} placement="bottomRight">
               <Space style={{ cursor: "pointer" }}>
-                <Avatar
-                  src={user.photoURL}
-                  icon={<FaUser />} // Icono de FontAwesome
-                />
+                <Avatar src={user.photoURL} icon={<FaUser />} />
                 <Text strong>{user.displayName || user.email.split("@")[0]}</Text>
               </Space>
             </Dropdown>
@@ -192,7 +186,8 @@ const HomePage = () => {
           </Col>
         ))}
       </Row>
-    </div>
+      <Footer />
+    </>
   );
 };
 
