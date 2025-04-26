@@ -5,7 +5,7 @@ const { Content } = Layout;
 
 export default function AuthLayout() {
   const location = useLocation();
-  const isAuthPage = ["/login", "/register"].includes(location.pathname);
+  const isAuthPage = ["/login", "/register-user"].includes(location.pathname);
   return (
     <Layout
       style={{

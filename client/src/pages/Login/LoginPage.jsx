@@ -102,7 +102,7 @@ export default function LoginPage() {
             ¿No tenés usuario?{" "}
             <Button
               type="link"
-              onClick={() => navigate("/register")}
+              onClick={() => navigate("/register-user")}
               style={{
                 padding: "0",
                 height: "auto",

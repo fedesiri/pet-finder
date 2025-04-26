@@ -121,7 +121,7 @@ model Pet {
   color             String
   distinctive_marks String?
   birthdate         DateTime?
-  qr_code           String    @unique
+  pet_code_id       String    @unique
   created_at        DateTime  @default(now())
   updated_at        DateTime  @updatedAt
 
@@ -129,6 +129,16 @@ model Pet {
   medical_records MedicalRecord[]
   lost_reports    LostReport[]
   photos          PetPhoto[]
+  pet_code        PetCode         @relation(fields: [pet_code_id], references: [id])
+}
+
+model PetCode {
+  id             String    @id @default(uuid()) // valor del QR
+  activated_date DateTime?
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @updatedAt
+
+  pet Pet?
 }
 
 model PetPhoto {

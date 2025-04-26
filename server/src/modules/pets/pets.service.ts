@@ -1,9 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { LostReport } from '@prisma/client';
-import {
-  RegisterOutputDto,
-  RegisterPetWithUserDto,
-} from './dto/create-pet.dto';
+import { RegisterUserDto, RegisterUserOutputDto } from './dto/create-user-dto';
 import { PetWithUser } from './pets.controller';
 import { PetsError } from './pets.errors';
 import { PetsRepository } from './prisma-pets-repository';
@@ -12,16 +9,8 @@ import { PetsRepository } from './prisma-pets-repository';
 export class PetsService {
   constructor(private readonly petsRepository: PetsRepository) {}
 
-  async registerPetWithUser(
-    input: RegisterPetWithUserDto,
-  ): Promise<RegisterOutputDto> {
-    const { users, pet, qr_code } = input;
-    const qr_code_registered = await this.petsRepository.isQrCodeRegistered(
-      qr_code,
-    );
-    if (qr_code_registered) {
-      throw new PetsError('PET-600');
-    }
+  async registerUser(input: RegisterUserDto): Promise<RegisterUserOutputDto> {
+    const { users } = input;
 
     if (!users.some((user) => user.external_id)) {
       throw new PetsError('PET-602');
@@ -38,15 +27,11 @@ export class PetsService {
       }
     });
 
-    const result = await this.petsRepository.createUserWithPetTransaction({
+    const result = await this.petsRepository.createUserTransaction({
       users,
-      pet,
-      qr_code,
     });
 
     return {
-      pet_id: result.pet_id,
-      qr_code: result.qr_code,
       user_ids: result.user_ids.map((id) => id),
       created_at: result.created_at,
     };

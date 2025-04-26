@@ -34,9 +34,9 @@ export const getLocalities = async (provinceId, { page = 1, items_per_page = 10,
   return response.data;
 };
 
-export const registerPetWithUser = async (data) => {
+export const registerUser = async (data) => {
   try {
-    const response = await api.post("/pets/register", data);
+    const response = await api.post("/pets/register-user", data);
     return response.data;
   } catch (error) {
     if (error.response) {

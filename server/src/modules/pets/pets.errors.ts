@@ -18,6 +18,7 @@ const dictionary = {
   'PET-701': 'Invalid date. Must be YYYY-MM-DD format.',
   'PET-800': 'qr_code is allowed.',
   'PET-801': 'No pets were found associated with this QR code.',
+  'PET-802': 'User not found or user not created',
 };
 
 type PetsErrorCode = keyof typeof dictionary;

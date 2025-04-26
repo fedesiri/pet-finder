@@ -1,28 +1,25 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { LostReport, Prisma, Species } from '@prisma/client';
 import { Envelope } from 'src/types/envelope.type';
-import {
-  RegisterOutputDto,
-  RegisterPetWithUserDto,
-} from './dto/create-pet.dto';
+import { RegisterUserDto, RegisterUserOutputDto } from './dto/create-user-dto';
 import { PetsService } from './pets.service';
 
 @Controller('pets')
 export class PetsController {
   constructor(private readonly petsService: PetsService) {}
 
-  @Post('register')
+  @Post('register-user')
   async register(
-    @Body() data: RegisterPetWithUserDto,
-  ): Promise<Envelope<RegisterOutputDto>> {
-    const response: Envelope<RegisterOutputDto> = {
+    @Body() data: RegisterUserDto,
+  ): Promise<Envelope<RegisterUserOutputDto>> {
+    const response: Envelope<RegisterUserOutputDto> = {
       success: true,
       data: null,
       error: null,
       pagination: null,
     };
     try {
-      response.data = await this.petsService.registerPetWithUser(data);
+      response.data = await this.petsService.registerUser(data);
       return response;
     } catch (error) {
       console.error(error);
@@ -30,7 +27,7 @@ export class PetsController {
       response.error =
         error instanceof Error
           ? error
-          : new Error('Error in pets/register controller');
+          : new Error('Error in pets/register-user controller');
       return response;
     }
   }
