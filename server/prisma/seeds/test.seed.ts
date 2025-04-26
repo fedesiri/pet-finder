@@ -85,14 +85,6 @@ function generatePet(userIds: string[]) {
   };
 }
 
-function generatePetPhoto(petId: string, isPrimary: boolean) {
-  return {
-    pet_id: petId,
-    url: faker.image.urlLoremFlickr({ category: 'animals' }),
-    is_primary: isPrimary,
-  };
-}
-
 function generateMedicalRecord(petId: string, localityId?: string) {
   return {
     pet_id: petId,

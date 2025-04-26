@@ -37,6 +37,8 @@ export class PetsService {
     };
   }
 
+  // ARMAR REGISTRO DE MASCOTA:
+
   async getPetByQrCode(qr_code: string): Promise<PetWithUser> {
     if (!qr_code) {
       throw new PetsError('PET-800');

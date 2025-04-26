@@ -32,6 +32,8 @@ export class PetsController {
     }
   }
 
+  // ARMAR REGISTRO DE MASCOTA.
+
   @Get('qr/:code')
   async getByQrCode(
     @Param('code') code: string,

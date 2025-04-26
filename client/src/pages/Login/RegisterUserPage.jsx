@@ -125,7 +125,7 @@ export default function RegisterUserPage() {
         type: "success",
         content: "Registro completado exitosamente!",
       });
-      navigate("/home");
+      navigate("/profile");
     } catch (error) {
       messageApi.open({
         type: "error",

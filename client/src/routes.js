@@ -6,6 +6,7 @@ import HomePage from "./pages/Home/HomePage";
 import LandingPage from "./pages/Home/LandingPage";
 import LoginPage from "./pages/Login/LoginPage";
 import RegisterUserPage from "./pages/Login/RegisterUserPage";
+import ProfilePage from "./pages/Profile/ProfilePage";
 
 const router = createBrowserRouter([
   {
@@ -29,6 +30,14 @@ const router = createBrowserRouter([
       {
         path: "/register-user",
         element: <RegisterUserPage />,
+      },
+      {
+        path: "/profile",
+        element: (
+          <ProtectedRoute>
+            <ProfilePage />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "/home",

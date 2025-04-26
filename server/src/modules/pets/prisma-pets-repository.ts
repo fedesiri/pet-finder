@@ -11,9 +11,9 @@ import { PetsError } from './pets.errors';
 export class PetsRepository {
   constructor(private readonly databaseService: DatabaseService) {}
 
-  async isQrCodeRegistered(qrCode: string): Promise<boolean> {
+  async isQrCodeRegistered(qr_code: string): Promise<boolean> {
     const count = await this.databaseService.pet.count({
-      where: { qr_code: qrCode },
+      where: { pet_code_id: qr_code },
     });
     return count > 0;
   }
@@ -82,9 +82,78 @@ export class PetsRepository {
     });
   }
 
-  async findPetByQr(qr_code: string): Promise<PetWithUser> {
+  // ARMAR REGISTRO MASCOTA.
+  // async createPetTransaction(input: {
+  //   users: [USER_IDS_DUEÑOS];
+  //   pet: CreatePetDto;
+  //   qr_code: string;
+  // }): Promise<RegisterPetOutputDto> {
+  //   return this.databaseService.$transaction(async (prisma) => {
+
+  //     // 2. Validar fecha (si existe)
+  //     let birthdate: Date | null = null;
+  //     if (input.pet.birthdate) {
+  //       if (!/^\d{4}-\d{2}-\d{2}$/.test(input.pet.birthdate)) {
+  //         throw new PetsError('PET-701');
+  //       }
+
+  //       const parsed_date = dayjs(input.pet.birthdate, 'YYYY-MM-DD', true);
+
+  //       if (!parsed_date.isValid()) {
+  //         throw new PetsError('PET-701');
+  //       }
+
+  //       const year = parsed_date.year();
+  //       if (year < 2000 || year > dayjs().year() + 1) {
+  //         throw new PetsError('PET-700');
+  //       }
+
+  //       birthdate = parsed_date.toDate();
+  //     }
+
+  //     if (!Object.values(Species).includes(input.pet.species)) {
+  //       throw new PetsError('PET-601');
+  //     }
+
+  //     // 3. Crear mascota
+  //     const pet = await prisma.pet.create({
+  //       data: {
+  //         ...input.pet,
+  //         birthdate,
+  //         qr_code: input.qr_code,
+  //         users: {
+  //           connect: created_users.map((user) => ({ id: user.id })),
+  //         },
+  //         photos:
+  //           input.pet.photos && input.pet.photos.length > 0
+  //             ? {
+  //                 create: input.pet.photos.map((url, index) => ({
+  //                   url,
+  //                   is_primary: index === 0,
+  //                 })),
+  //               }
+  //             : undefined,
+  //       },
+  //       select: {
+  //         id: true,
+  //         qr_code: true,
+  //         created_at: true,
+  //         users: { select: { id: true } },
+  //       },
+  //     });
+
+  //     return {
+  //       pet_id: pet.id,
+  //       qr_code: pet.qr_code,
+  //       user_ids: pet.users.map((user) => user.id),
+  //       created_at: pet.created_at,
+  //     };
+  //   });
+  // }
+
+  async findPetByQr(pet_code_id: string): Promise<PetWithUser> {
     return this.databaseService.pet.findUnique({
-      where: { qr_code },
+      where: { pet_code_id },
       include: {
         users: true,
       },
