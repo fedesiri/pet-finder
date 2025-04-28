@@ -1,79 +1,115 @@
-import { Card, Image, Space, Tag, Typography } from "antd";
+import { Card, Image, Space, Tag, Tooltip, Typography } from "antd";
 import React from "react";
 import { FaCat, FaDog, FaPaw, FaQrcode } from "react-icons/fa";
+import { GiBirdTwitter } from "react-icons/gi";
+import { IoMdPaw } from "react-icons/io";
 
 const { Text } = Typography;
 
-const PetCard = ({ pet, actions }) => {
-  // Función para obtener el icono según la especie
-  const getSpeciesIcon = () => {
+const PetCard = ({ pet, actions = [] }) => {
+  // Función para obtener el icono y color según la especie
+  const getSpeciesInfo = () => {
     switch (pet.species) {
       case "DOG":
-        return FaDog;
+        return { icon: FaDog, color: "blue", label: "Perro" };
       case "CAT":
-        return FaCat;
+        return { icon: FaCat, color: "orange", label: "Gato" };
+      case "BIRD":
+        return { icon: GiBirdTwitter, color: "green", label: "Ave" };
       default:
-        return FaPaw;
+        return { icon: IoMdPaw, color: "purple", label: "Mascota" };
     }
   };
 
-  const SpeciesIcon = getSpeciesIcon();
+  const { icon: SpeciesIcon, color, label } = getSpeciesInfo();
 
-  // Verificar si hay fotos y obtener la primaria o la primera
-  const primaryPhoto = pet.photos?.find((p) => p.is_primary) || pet.photos?.[0];
-  const photoUrl = primaryPhoto?.url || "https://placekitten.com/300/200";
+  // Manejo seguro de fotos
+  const getPhotoUrl = () => {
+    try {
+      const primaryPhoto = pet.photos?.find((p) => p.is_primary) || pet.photos?.[0];
+      return primaryPhoto?.url || null;
+    } catch (error) {
+      console.error("Error processing pet photos:", error);
+      return null;
+    }
+  };
+
+  const photoUrl = getPhotoUrl();
+
+  // Formatear el código de mascota
+  const formatPetCode = (id) => {
+    if (!id) return null;
+    return id.split("-")[0]; // Mostrar solo la primera parte del UUID
+  };
 
   return (
     <Card
+      hoverable
       cover={
         <div style={{ height: "200px", overflow: "hidden" }}>
-          <Image
-            src={photoUrl}
-            alt={pet.name}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-            }}
-            placeholder={
-              <div
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: "#f0f2f5",
-                }}
-              >
-                <FaPaw style={{ fontSize: "48px", color: "#999" }} />
-              </div>
-            }
-          />
+          {photoUrl ? (
+            <Image
+              src={photoUrl}
+              alt={`Foto de ${pet.name}`}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+              }}
+              preview={false}
+            />
+          ) : (
+            <div
+              style={{
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: "#f0f2f5",
+              }}
+            >
+              <FaPaw style={{ fontSize: "48px", color: "#999" }} />
+            </div>
+          )}
         </div>
       }
       actions={actions}
+      bodyStyle={{ padding: "16px" }}
     >
       <Card.Meta
         title={
-          <Space>
-            <Text strong>{pet.name}</Text>
-            <Tag
-              color={pet.species === "DOG" ? "blue" : pet.species === "CAT" ? "orange" : "green"}
-              icon={<SpeciesIcon />}
-            >
-              {pet.species === "DOG" ? "Perro" : pet.species === "CAT" ? "Gato" : "Otro"}
+          <Space align="center">
+            <Text strong ellipsis style={{ maxWidth: "120px" }}>
+              {pet.name}
+            </Text>
+            <Tag color={color} icon={<SpeciesIcon />}>
+              {label}
             </Tag>
           </Space>
         }
         description={
-          <Space direction="vertical" size="small">
-            {pet.breed && <Text>{pet.breed}</Text>}
+          <Space direction="vertical" size="small" style={{ width: "100%" }}>
+            {pet.breed && (
+              <Text ellipsis style={{ maxWidth: "100%" }}>
+                {pet.breed}
+              </Text>
+            )}
+
             <Text type="secondary">{pet.color}</Text>
-            {pet.pet_code && (
+
+            {pet.distinctive_marks && (
+              <Tooltip title={pet.distinctive_marks}>
+                <Text type="secondary" ellipsis>
+                  Marcas: {pet.distinctive_marks}
+                </Text>
+              </Tooltip>
+            )}
+
+            {pet.pet_code_id && (
               <Text>
                 <FaQrcode style={{ marginRight: 8 }} />
-                Código: {pet.pet_code.id}
+                <Text code>{formatPetCode(pet.pet_code_id)}</Text>
               </Text>
             )}
           </Space>

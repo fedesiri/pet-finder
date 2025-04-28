@@ -2,8 +2,8 @@ import { Avatar, Button, Card, Col, Divider, Dropdown, Menu, Row, Space, Spin, T
 import React, { useContext } from "react";
 import { FaCog, FaPaw, FaPlus, FaSearch, FaSignOutAlt, FaUser } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { AuthContext } from "../../context/AuthContext";
 import Footer from "../../components/layout/Footer";
+import { AuthContext } from "../../context/AuthContext";
 
 const { Title, Text } = Typography;
 
@@ -165,7 +165,7 @@ const HomePage = () => {
                 <img alt={report.pet.name} src={report.pet.photoUrl} style={{ height: "160px", objectFit: "cover" }} />
               }
               actions={[
-                <Button type="link" block>
+                <Button key="details" type="link" block>
                   Ver detalles
                 </Button>,
               ]}

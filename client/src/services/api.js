@@ -62,3 +62,17 @@ export const getUserProfile = async (token) => {
     throw error;
   }
 };
+
+export const getPetsFromUser = async (token) => {
+  try {
+    const response = await api.get(`/pets`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    throw error;
+  }
+};

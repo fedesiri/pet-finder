@@ -4,6 +4,7 @@ import { CurrentUser } from 'src/decorators/user.decorator';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { Envelope } from 'src/types/envelope.type';
 import { RegisterUserDto, RegisterUserOutputDto } from './dto/create-user-dto';
+import { PetResponseDto } from './dto/get-pets-from-user';
 import { UserProfileResponseDto } from './dto/get-user-profile.dto';
 import { PetsService } from './pets.service';
 
@@ -158,6 +159,32 @@ export class PetsController {
         error instanceof Error
           ? error
           : new Error('Error in pets/profile controller');
+      console.error(error);
+      return response;
+    }
+  }
+
+  @Get('')
+  @UseGuards(AuthGuard)
+  async getUserPets(
+    @CurrentUser() user: { id: string },
+  ): Promise<Envelope<PetResponseDto[]>> {
+    const response: Envelope<PetResponseDto[]> = {
+      success: true,
+      data: null,
+      error: null,
+      pagination: null,
+    };
+
+    try {
+      response.data = await this.petsService.getUserPets(user.id);
+      return response;
+    } catch (error) {
+      response.success = false;
+      response.error =
+        error instanceof Error
+          ? error
+          : new Error('Error in pets/pets controller');
       console.error(error);
       return response;
     }

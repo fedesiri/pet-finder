@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { getUserProfile } from "../services/api";
 
@@ -10,7 +10,7 @@ export const useUserProfile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchUserProfile = async () => {
+  const fetchUserProfile = useCallback(async () => {
     if (!token) return;
 
     try {
@@ -24,16 +24,15 @@ export const useUserProfile = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
-  // Función para refrescar los datos
   const refreshProfile = () => {
     fetchUserProfile();
   };
 
   useEffect(() => {
     fetchUserProfile();
-  }, [token]);
+  }, [fetchUserProfile]);
 
   return {
     userData,

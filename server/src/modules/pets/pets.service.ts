@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { LostReport } from '@prisma/client';
 import { RegisterUserDto, RegisterUserOutputDto } from './dto/create-user-dto';
+import { PetResponseDto } from './dto/get-pets-from-user';
 import { UserProfileResponseDto } from './dto/get-user-profile.dto';
 import { PetWithUser } from './pets.controller';
 import { PetsError } from './pets.errors';
@@ -90,5 +91,26 @@ export class PetsService {
         locality: address.locality.name,
       })),
     };
+  }
+
+  async getUserPets(external_id: string): Promise<PetResponseDto[]> {
+    const pets = await this.petsRepository.getUserPets(external_id);
+    if (!pets || pets.length === 0) return [];
+
+    return pets.map((pet) => ({
+      id: pet.id,
+      name: pet.name,
+      species: pet.species,
+      breed: pet.breed ?? undefined,
+      color: pet.color,
+      distinctive_marks: pet.distinctive_marks ?? undefined,
+      birthdate: pet.birthdate ?? undefined,
+      pet_code_id: pet.pet_code_id,
+      photos: pet.photos.map((photo) => ({
+        id: photo.id,
+        url: photo.url,
+        is_primary: photo.is_primary,
+      })),
+    }));
   }
 }
