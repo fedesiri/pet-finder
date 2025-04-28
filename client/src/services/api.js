@@ -48,3 +48,17 @@ export const registerUser = async (data) => {
     }
   }
 };
+
+export const getUserProfile = async (token) => {
+  try {
+    const response = await api.get(`/pets/profile`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching user profile:", error);
+    throw error;
+  }
+};

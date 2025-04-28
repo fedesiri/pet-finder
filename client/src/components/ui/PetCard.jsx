@@ -6,8 +6,6 @@ const { Text } = Typography;
 
 const PetCard = ({ pet, actions }) => {
   // Función para obtener el icono según la especie
-  console.log("muetro pet ", pet);
-  console.log("muestro actionssss ", actions);
   const getSpeciesIcon = () => {
     switch (pet.species) {
       case "DOG":

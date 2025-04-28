@@ -11,6 +11,7 @@ import {
   Menu,
   Row,
   Space,
+  Spin,
   Tabs,
   Tag,
   Typography,
@@ -35,70 +36,16 @@ import {
 import { useNavigate } from "react-router-dom";
 import PetCard from "../../components/ui/PetCard";
 import { AuthContext } from "../../context/AuthContext";
+import { useUserProfile } from "../../hooks/useUserProfile";
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
 
-// Mock data basado en tus modelos Prisma
-const mockUser = {
-  id: "user-123",
-  name: "María",
-  lastName: "González",
-  email: "maria@ejemplo.com",
-  phone: "+54 11 1234-5678",
-  external_id: "firebase-uid-123",
-  addresses: [
-    {
-      id: "addr-123",
-      street: "Av. Corrientes",
-      number: "1234",
-      apartment: "A",
-      neighborhood: "Balvanera",
-      zip_code: "C1043",
-      is_primary: true,
-      province: { name: "Buenos Aires" },
-      locality: { name: "CABA" },
-    },
-    {
-      id: "addr-124",
-      street: "Av. Santa Fe",
-      number: "5678",
-      apartment: "B",
-      neighborhood: "Recoleta",
-      zip_code: "C1123",
-      is_primary: false,
-      province: { name: "Buenos Aires" },
-      locality: { name: "CABA" },
-    },
-  ],
-  pets: [
-    {
-      id: "pet-123",
-      name: "Yaco",
-      species: "DOG",
-      breed: "Yack Rusell",
-      color: "Blanco, Marrón",
-      birthdate: "2020-05-15",
-      pet_code: { id: "QR-Yaco-123" },
-      photos: [{ url: "https://placedog.net/300/200?random=5", is_primary: true }],
-    },
-    {
-      id: "pet-124",
-      name: "Ciro",
-      species: "DOG",
-      breed: "Yack Rusell",
-      color: "Blanco, Marrón",
-      birthdate: "2020-05-15",
-      pet_code: { id: "QR-ciro-123" },
-      photos: [{ url: "https://placedog.net/300/200?random=6", is_primary: true }],
-    },
-  ],
-};
-
 const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState("pets");
-  const [hasPets] = useState(true);
-  const { user, logout } = useContext(AuthContext);
+  const [hasPets] = useState(false);
+  const { logout } = useContext(AuthContext);
+  const { userData, loading, error } = useUserProfile();
   const navigate = useNavigate();
 
   const userMenu = (
@@ -131,9 +78,20 @@ const ProfilePage = () => {
     />
   );
 
+  if (loading) {
+    return <Spin />;
+  }
+
+  if (error) {
+    return <div>Error al cargar el perfil: {error.message}</div>;
+  }
+
+  if (!userData) {
+    return <div>No se encontraron datos del perfil</div>;
+  }
+
   return (
     <>
-      {/* Header consistente con Home */}
       <Row justify="space-between" align="middle" style={{ marginBottom: "24px" }}>
         <Col>
           <Title level={3}>
@@ -150,8 +108,8 @@ const ProfilePage = () => {
             </Button>
             <Dropdown overlay={userMenu} placement="bottomRight">
               <Space style={{ cursor: "pointer" }}>
-                <Avatar src={user?.photoURL} icon={<FaUser />} />
-                <Text strong>{user?.displayName || user?.email?.split("@")[0]}</Text>
+                <Avatar src={userData?.photoURL} icon={<FaUser />} />
+                <Text strong>{userData?.name?.split(" ")[0] || userData?.email?.split("@")[0]}</Text>
               </Space>
             </Dropdown>
           </Space>
@@ -173,19 +131,15 @@ const ProfilePage = () => {
             <Space direction="vertical" size="middle" style={{ width: "100%" }}>
               <List itemLayout="horizontal">
                 <List.Item>
-                  <List.Item.Meta
-                    avatar={<FaIdCard />}
-                    title="Nombre completo"
-                    description={`${mockUser.name} ${mockUser.lastName}`}
-                  />
+                  <List.Item.Meta avatar={<FaIdCard />} title="Nombre completo" description={`${userData.name}`} />
                   <Button type="text" icon={<FaEdit />} />
                 </List.Item>
                 <List.Item>
-                  <List.Item.Meta avatar={<FaEnvelope />} title="Email" description={mockUser.email} />
+                  <List.Item.Meta avatar={<FaEnvelope />} title="Email" description={userData.email} />
                   <Button type="text" icon={<FaEdit />} />
                 </List.Item>
                 <List.Item>
-                  <List.Item.Meta avatar={<FaPhone />} title="Teléfono" description={mockUser.phone} />
+                  <List.Item.Meta avatar={<FaPhone />} title="Teléfono" description={userData.phone} />
                   <Button type="text" icon={<FaEdit />} />
                 </List.Item>
               </List>
@@ -195,7 +149,7 @@ const ProfilePage = () => {
               </Divider>
 
               <Row gutter={[16, 16]}>
-                {mockUser.addresses.map((address) => (
+                {userData.addresses.map((address) => (
                   <Col xs={24} sm={12} key={address.id}>
                     <Card extra={address.is_primary && <Tag color="green">Principal</Tag>}>
                       <Space direction="vertical">
@@ -205,9 +159,10 @@ const ProfilePage = () => {
                         </Text>
                         <Text>
                           <FaThumbtack style={{ marginRight: 8 }} />
-                          {address.neighborhood}, {address.locality.name}, {address.province.name}
+                          {address.neighborhood ? `${address.neighborhood}, ` : ""}
+                          {address.locality}, {address.province}
                         </Text>
-                        <Text type="secondary">CP: {address.zip_code}</Text>
+                        <Text type="secondary">CP: {address.zip_code ? address.zip_code : "N/A"}</Text>
                       </Space>
                     </Card>
                   </Col>
@@ -231,7 +186,7 @@ const ProfilePage = () => {
           >
             {hasPets ? (
               <Row gutter={[16, 16]}>
-                {mockUser.pets.map((pet) => (
+                {userData?.pets?.map((pet) => (
                   <Col xs={24} sm={12} md={8} lg={6} key={pet.id}>
                     <PetCard
                       pet={pet}
