@@ -4,6 +4,7 @@ import * as bcrypt from 'bcrypt';
 import * as dayjs from 'dayjs';
 import { DatabaseService } from 'src/helpers/database.service';
 import { CreateUserDto } from './dto/create-user-dto';
+import { UserProfileOutputRepositoryDto } from './dto/get-user-profile.dto';
 import { PetWithUser } from './pets.controller';
 import { PetsError } from './pets.errors';
 
@@ -177,6 +178,23 @@ export class PetsRepository {
         locality_id: data.locality_id,
         comments: data.comments,
         is_active: true,
+      },
+    });
+  }
+
+  async getUserWithAddresses(
+    external_id: string,
+  ): Promise<UserProfileOutputRepositoryDto> {
+    return this.databaseService.user.findUnique({
+      where: { external_id },
+      include: {
+        addresses: {
+          include: {
+            province: { select: { name: true } },
+            locality: { select: { name: true } },
+          },
+          orderBy: { is_primary: 'desc' },
+        },
       },
     });
   }

@@ -1,7 +1,10 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { LostReport, Prisma, Species } from '@prisma/client';
+import { CurrentUser } from 'src/decorators/user.decorator';
+import { AuthGuard } from 'src/guards/auth.guard';
 import { Envelope } from 'src/types/envelope.type';
 import { RegisterUserDto, RegisterUserOutputDto } from './dto/create-user-dto';
+import { UserProfileResponseDto } from './dto/get-user-profile.dto';
 import { PetsService } from './pets.service';
 
 @Controller('pets')
@@ -128,6 +131,33 @@ export class PetsController {
         error instanceof Error
           ? error
           : new Error('Error in pets/species controller');
+      console.error(error);
+      return response;
+    }
+  }
+
+  @Get('profile')
+  @UseGuards(AuthGuard)
+  async getProfile(
+    @CurrentUser() user: { id: string },
+  ): Promise<Envelope<UserProfileResponseDto>> {
+    const response: Envelope<UserProfileResponseDto> = {
+      success: true,
+      data: null,
+      error: null,
+      pagination: null,
+    };
+
+    try {
+      response.data = await this.petsService.getUserProfile(user.id);
+
+      return response;
+    } catch (error) {
+      response.success = false;
+      response.error =
+        error instanceof Error
+          ? error
+          : new Error('Error in pets/profile controller');
       console.error(error);
       return response;
     }

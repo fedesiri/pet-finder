@@ -176,7 +176,7 @@ model User {
   email       String   @unique
   password    String
   phone       String
-  external_id String
+  external_id String   @unique
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
 

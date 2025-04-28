@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { LostReport } from '@prisma/client';
 import { RegisterUserDto, RegisterUserOutputDto } from './dto/create-user-dto';
+import { UserProfileResponseDto } from './dto/get-user-profile.dto';
 import { PetWithUser } from './pets.controller';
 import { PetsError } from './pets.errors';
 import { PetsRepository } from './prisma-pets-repository';
@@ -67,5 +68,27 @@ export class PetsService {
       province_id: data.province_id,
       locality_id: data.locality_id,
     });
+  }
+
+  async getUserProfile(external_id: string): Promise<UserProfileResponseDto> {
+    const user = await this.petsRepository.getUserWithAddresses(external_id);
+    if (!user) throw new PetsError('PET-802');
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      addresses: user.addresses?.map((address) => ({
+        id: address.id,
+        street: address.street,
+        number: address.number,
+        apartment: address.apartment,
+        neighborhood: address.neighborhood,
+        zip_code: address.zip_code,
+        is_primary: address.is_primary,
+        province: address.province.name,
+        locality: address.locality.name,
+      })),
+    };
   }
 }

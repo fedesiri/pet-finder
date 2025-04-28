@@ -13,6 +13,7 @@
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": false,
+    "typeRoots": ["./node_modules/@types", "./src/types"],
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
