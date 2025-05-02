@@ -33,6 +33,7 @@ import {
   FaUser,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import RequestTagModal from "../../components/RequestTagModal";
 import PetCard from "../../components/ui/PetCard";
 import { AuthContext } from "../../context/AuthContext";
 import { usePetsFromUser } from "../../hooks/usePetsFromUser";
@@ -46,6 +47,8 @@ const ProfilePage = () => {
   const { userData, loading, error } = useUserProfile();
   const { pets, loading: petsLoading, error: petsError } = usePetsFromUser();
   const navigate = useNavigate();
+  const [requestTagModalVisible, setRequestTagModalVisible] = useState(false);
+  const { addresses, loading: addressesLoading } = useUserProfile();
 
   const userMenu = {
     items: [
@@ -93,10 +96,9 @@ const ProfilePage = () => {
               <Text>Todavía no has registrado tu mascota</Text>
               <Text type="secondary">¿Ya tenés tu chapita identificadora?</Text>
               <Space>
-                <Button type="primary" icon={<FaPaw />}>
-                  Ya tengo mi chapita
+                <Button icon={<FaQrcode />} onClick={() => setRequestTagModalVisible(true)}>
+                  Enviame mi chapita
                 </Button>
-                <Button icon={<FaQrcode />}>Enviame mi chapita</Button>
               </Space>
             </Space>
           }
@@ -250,6 +252,12 @@ const ProfilePage = () => {
       <Card>
         <Tabs activeKey={activeTab} onChange={setActiveTab} items={tabItems} />
       </Card>
+      <RequestTagModal
+        visible={requestTagModalVisible}
+        onCancel={() => setRequestTagModalVisible(false)}
+        userAddresses={addresses}
+        loading={addressesLoading}
+      />
     </>
   );
 };

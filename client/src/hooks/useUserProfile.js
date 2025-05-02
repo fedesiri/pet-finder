@@ -38,6 +38,7 @@ export const useUserProfile = () => {
     userData,
     loading,
     error,
+    addresses: userData?.addresses || [],
     refreshProfile,
   };
 };

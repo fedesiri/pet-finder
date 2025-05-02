@@ -1,11 +1,10 @@
+import { getDownloadURL, ref, uploadBytes } from "@firebase/storage";
 import { Card, Col, DatePicker, Form, Input, message, Row, Select, Typography, Upload } from "antd";
 import dayjs from "dayjs";
 import React, { useState } from "react";
 import { FaImages, FaPaw, FaUpload } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import PetLogo from "../../components/ui/PetLogo";
-
-import { getDownloadURL, ref, uploadBytes } from "@firebase/storage";
 import { storage } from "../../credentials";
 import { useSpecies } from "../../hooks/useSpecies";
 
@@ -143,7 +142,6 @@ export default function RegisterPetPage() {
           autoComplete="off"
           scrollToFirstError
         >
-          {/* Paso 3: Datos de la Mascota FIJARSE COMO QUEDA ESE DISPLAY! */}
           <div style={{ textAlign: "center", marginBottom: "24px" }}>
             <Row gutter={16}>
               <Col span={12}>
@@ -238,7 +236,7 @@ export default function RegisterPetPage() {
                 onChange={handleUploadChange}
                 beforeUpload={(file) => {
                   const isValid = handleBeforeUpload(file);
-                  return isValid === true ? false : isValid; // false = no subir automáticamente
+                  return isValid === true ? false : isValid;
                 }}
                 maxCount={5}
                 multiple

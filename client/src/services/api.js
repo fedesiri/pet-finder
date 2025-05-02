@@ -76,3 +76,44 @@ export const getPetsFromUser = async (token) => {
     throw error;
   }
 };
+
+export const requestPetCode = async (data, token) => {
+  try {
+    const response = await api.post(`/pets/request-code`, data, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error request pet code:", error);
+    throw new Error(error.response?.data?.error?.message || "Error al solicitar el código");
+  }
+};
+
+export const checkCodeStatus = async (code) => {
+  try {
+    const response = await api.get(`/pets/code/${code}/status`);
+    return response.data;
+  } catch (error) {
+    console.error("Error check code status:", error);
+    throw new Error(error.response?.data?.error?.message || "Error al verificar el código");
+  }
+};
+
+export const registerPetWithCode = async (data, token) => {
+  try {
+    const response = await api.post(`/pets/register-with-code`, data, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error register pet with code:", error);
+    throw new Error(
+      error.response?.data?.error?.message || error.response?.data?.message || "Error al registrar la mascota"
+    );
+  }
+};

@@ -2,6 +2,7 @@ import { createBrowserRouter } from "react-router-dom";
 import AuthLayout from "./components/layout/AuthLayout";
 import MainLayout from "./components/layout/MainLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
+import RegisterPetWithCode from "./components/RegisterPetWithCode";
 import HomePage from "./pages/Home/HomePage";
 import LandingPage from "./pages/Home/LandingPage";
 import LoginPage from "./pages/Login/LoginPage";
@@ -46,6 +47,14 @@ const router = createBrowserRouter([
             <HomePage />
           </ProtectedRoute>
         ),
+      },
+      {
+        path: "/register-pet/:code",
+        element: <RegisterPetWithCode />,
+      },
+      {
+        path: "/register-pet",
+        element: <RegisterPetWithCode />,
       },
     ],
   },
