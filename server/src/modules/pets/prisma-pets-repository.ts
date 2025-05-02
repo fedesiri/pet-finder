@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { LostReport } from '@prisma/client';
+import { LostReport, Pet, PetCode, Species } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import * as dayjs from 'dayjs';
 import { DatabaseService } from 'src/helpers/database.service';
@@ -84,75 +84,6 @@ export class PetsRepository {
     });
   }
 
-  // ARMAR REGISTRO MASCOTA.
-  // async createPetTransaction(input: {
-  //   users: [USER_IDS_DUEÑOS];
-  //   pet: CreatePetDto;
-  //   qr_code: string;
-  // }): Promise<RegisterPetOutputDto> {
-  //   return this.databaseService.$transaction(async (prisma) => {
-
-  //     // 2. Validar fecha (si existe)
-  //     let birthdate: Date | null = null;
-  //     if (input.pet.birthdate) {
-  //       if (!/^\d{4}-\d{2}-\d{2}$/.test(input.pet.birthdate)) {
-  //         throw new PetsError('PET-701');
-  //       }
-
-  //       const parsed_date = dayjs(input.pet.birthdate, 'YYYY-MM-DD', true);
-
-  //       if (!parsed_date.isValid()) {
-  //         throw new PetsError('PET-701');
-  //       }
-
-  //       const year = parsed_date.year();
-  //       if (year < 2000 || year > dayjs().year() + 1) {
-  //         throw new PetsError('PET-700');
-  //       }
-
-  //       birthdate = parsed_date.toDate();
-  //     }
-
-  //     if (!Object.values(Species).includes(input.pet.species)) {
-  //       throw new PetsError('PET-601');
-  //     }
-
-  //     // 3. Crear mascota
-  //     const pet = await prisma.pet.create({
-  //       data: {
-  //         ...input.pet,
-  //         birthdate,
-  //         qr_code: input.qr_code,
-  //         users: {
-  //           connect: created_users.map((user) => ({ id: user.id })),
-  //         },
-  //         photos:
-  //           input.pet.photos && input.pet.photos.length > 0
-  //             ? {
-  //                 create: input.pet.photos.map((url, index) => ({
-  //                   url,
-  //                   is_primary: index === 0,
-  //                 })),
-  //               }
-  //             : undefined,
-  //       },
-  //       select: {
-  //         id: true,
-  //         qr_code: true,
-  //         created_at: true,
-  //         users: { select: { id: true } },
-  //       },
-  //     });
-
-  //     return {
-  //       pet_id: pet.id,
-  //       qr_code: pet.qr_code,
-  //       user_ids: pet.users.map((user) => user.id),
-  //       created_at: pet.created_at,
-  //     };
-  //   });
-  // }
-
   async findPetByQr(pet_code_id: string): Promise<PetWithUser> {
     return this.databaseService.pet.findUnique({
       where: { pet_code_id },
@@ -191,8 +122,8 @@ export class PetsRepository {
       include: {
         addresses: {
           include: {
-            province: { select: { name: true } },
-            locality: { select: { name: true } },
+            province: { select: { id: true, name: true } },
+            locality: { select: { id: true, name: true } },
           },
           orderBy: { is_primary: 'desc' },
         },
@@ -211,6 +142,121 @@ export class PetsRepository {
           },
         },
       },
+      select: {
+        id: true,
+        name: true,
+        species: true,
+        breed: true,
+        color: true,
+        distinctive_marks: true,
+        birthdate: true,
+        pet_code_id: true,
+        photos: {
+          select: {
+            id: true,
+            url: true,
+            is_primary: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findUserByExternalId(
+    external_id: string,
+  ): Promise<{ id: string } | null> {
+    return this.databaseService.user.findUnique({
+      where: { external_id },
+      select: { id: true },
+    });
+  }
+
+  async createPetCode(): Promise<PetCode> {
+    return this.databaseService.petCode.create({
+      data: {},
+    });
+  }
+
+  async findPetCode(code: string): Promise<PetCode & { pet?: Pet }> {
+    return this.databaseService.petCode.findUnique({
+      where: { id: code },
+      include: { pet: true },
+    });
+  }
+
+  async activatePetCode(code: string): Promise<PetCode> {
+    return this.databaseService.petCode.update({
+      where: { id: code },
+      data: {
+        activated_date: new Date(),
+      },
+    });
+  }
+
+  async createAddress(data: {
+    user_id: string;
+    street: string;
+    number: string;
+    apartment?: string;
+    neighborhood?: string;
+    zip_code?: string;
+    province_id: string;
+    locality_id: string;
+    is_primary: boolean;
+    show_address: boolean;
+  }): Promise<{ id: string }> {
+    const address = await this.databaseService.address.create({
+      data,
+    });
+    return { id: address.id };
+  }
+
+  // ESTA FUNCIIONALIDAD LA VEMOS MÁS ADELANTE
+  // async createCodeDeliveryRequest(data: {
+  //   codeId: string;
+  //   addressId: string;
+  //   userId: string;
+  // }): Promise<void> {
+  //}
+
+  async createPet(data: {
+    name: string;
+    species: Species;
+    breed?: string;
+    color: string;
+    distinctive_marks?: string;
+    birthdate?: Date;
+    pet_code_id: string;
+  }): Promise<Pet> {
+    return this.databaseService.pet.create({
+      data,
+    });
+  }
+
+  async associatePetToUser(petId: string, userId: string): Promise<void> {
+    await this.databaseService.pet.update({
+      where: { id: petId },
+      data: {
+        users: {
+          connect: { id: userId },
+        },
+      },
+    });
+  }
+
+  async createPetPhoto(data: {
+    pet_id: string;
+    url: string;
+    is_primary: boolean;
+  }): Promise<void> {
+    await this.databaseService.petPhoto.create({
+      data,
+    });
+  }
+
+  async getPetWithPhotos(petId: string): Promise<PetWithPhotosRepositoryDto> {
+    return this.databaseService.pet.findUnique({
+      where: { id: petId },
       select: {
         id: true,
         name: true,

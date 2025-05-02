@@ -19,6 +19,10 @@ const dictionary = {
   'PET-800': 'qr_code is allowed.',
   'PET-801': 'No pets were found associated with this QR code.',
   'PET-802': 'User not found or user not created',
+  'PET-803': 'Pet code dont exist',
+  'PET-804': 'Pet code already activated',
+  'PET-805': 'Address is not valid for delivery',
+  'PET-806': 'Error generating QR code',
 };
 
 type PetsErrorCode = keyof typeof dictionary;

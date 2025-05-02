@@ -38,9 +38,16 @@ class AddressDto {
   @IsNotEmpty()
   province: string;
 
+  @IsUUID()
+  @IsNotEmpty()
+  province_id: string;
+
   @IsString()
   @IsNotEmpty()
   locality: string;
+  @IsUUID()
+  @IsNotEmpty()
+  locality_id: string;
 }
 
 export class UserProfileResponseDto {
@@ -67,8 +74,18 @@ export type UserProfileOutputRepositoryDto = Prisma.UserGetPayload<{
   include: {
     addresses: {
       include: {
-        province: { select: { name: true } };
-        locality: { select: { name: true } };
+        province: {
+          select: {
+            id: true;
+            name: true;
+          };
+        };
+        locality: {
+          select: {
+            id: true;
+            name: true;
+          };
+        };
       };
     };
   };

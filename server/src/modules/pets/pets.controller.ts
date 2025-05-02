@@ -6,6 +6,7 @@ import { Envelope } from 'src/types/envelope.type';
 import { RegisterUserDto, RegisterUserOutputDto } from './dto/create-user-dto';
 import { PetResponseDto } from './dto/get-pets-from-user';
 import { UserProfileResponseDto } from './dto/get-user-profile.dto';
+import { RegisterPetWithCodeDto, RequestPetCodeDto } from './dto/pet-code.dto';
 import { PetsService } from './pets.service';
 
 @Controller('pets')
@@ -35,8 +36,6 @@ export class PetsController {
       return response;
     }
   }
-
-  // ARMAR REGISTRO DE MASCOTA.
 
   @Get('qr/:code')
   async getByQrCode(
@@ -182,9 +181,81 @@ export class PetsController {
     } catch (error) {
       response.success = false;
       response.error =
+        error instanceof Error ? error : new Error('Error in /pets controller');
+      console.error(error);
+      return response;
+    }
+  }
+
+  @Post('request-code')
+  @UseGuards(AuthGuard)
+  async requestPetCode(
+    @CurrentUser() user: { id: string },
+    @Body() data: RequestPetCodeDto,
+  ): Promise<Envelope<{ code: string; qr_image: string }>> {
+    const response = {
+      success: true,
+      data: null,
+      error: null,
+      pagination: null,
+    };
+    try {
+      response.data = await this.petsService.requestPetCode(user.id, data);
+      return response;
+    } catch (error) {
+      response.success = false;
+      response.error =
         error instanceof Error
           ? error
-          : new Error('Error in pets/pets controller');
+          : new Error('Error in pets/request-code controller');
+      console.error(error);
+      return response;
+    }
+  }
+
+  @Get('code/:code/status')
+  async checkCodeStatus(
+    @Param('code') code: string,
+  ): Promise<Envelope<{ is_activated: boolean }>> {
+    const response = {
+      success: true,
+      data: null,
+      error: null,
+      pagination: null,
+    };
+    try {
+      response.data = await this.petsService.checkCodeStatus(code);
+      return response;
+    } catch (error) {
+      response.success = false;
+      response.error =
+        error instanceof Error
+          ? error
+          : new Error('Error in pets/code/:code/status controller');
+      console.error(error);
+      return response;
+    }
+  }
+
+  @Post('register-with-code')
+  async registerPetWithCode(
+    @Body() data: RegisterPetWithCodeDto,
+  ): Promise<Envelope<PetResponseDto>> {
+    const response = {
+      success: true,
+      data: null,
+      error: null,
+      pagination: null,
+    };
+    try {
+      response.data = await this.petsService.registerPetWithCode(data);
+      return response;
+    } catch (error) {
+      response.success = false;
+      response.error =
+        error instanceof Error
+          ? error
+          : new Error('Error in pets/register-with-code controller');
       console.error(error);
       return response;
     }
