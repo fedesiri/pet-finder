@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { LostReport, Species } from '@prisma/client';
-import dayjs from 'dayjs';
+import * as dayjs from 'dayjs';
 import * as QRCode from 'qrcode';
 import { RegisterUserDto, RegisterUserOutputDto } from './dto/create-user-dto';
 import { PetResponseDto } from './dto/get-pets-from-user';

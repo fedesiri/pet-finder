@@ -1,29 +1,16 @@
-import { Button, Card, Checkbox, Col, Form, Input, message, Row, Select, Steps, Typography } from "antd";
+import { Button, Card, Col, Form, Input, message, Row, Steps, Typography } from "antd";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import React, { useState } from "react";
-import {
-  FaArrowLeft,
-  FaArrowRight,
-  FaCheck,
-  FaCity,
-  FaEnvelope,
-  FaHome,
-  FaIdCard,
-  FaLock,
-  FaMapMarkerAlt,
-  FaPhone,
-  FaUser,
-} from "react-icons/fa";
+import { FaArrowLeft, FaArrowRight, FaCheck, FaEnvelope, FaIdCard, FaLock, FaPhone, FaUser } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import AddressForm from "../../components/AddressForm";
 import PetLogo from "../../components/ui/PetLogo";
 import { auth } from "../../credentials";
 import { useProvincesAndLocalities } from "../../hooks/useProvincesAndLocalities";
-import { registerUser } from "../../services/api"; // Cambiar a tu servicio de registro de usuario
+import { registerUser } from "../../services/api";
 
 const { Step } = Steps;
 const { Title } = Typography;
-const { Option } = Select;
-const { TextArea } = Input;
 
 export default function RegisterUserPage() {
   const [form] = Form.useForm();
@@ -51,13 +38,13 @@ export default function RegisterUserPage() {
       title: "Cuenta",
       icon: <FaUser />,
       content: "Datos de acceso",
-      fields: ["email", "password", "confirmPassword"],
+      fields: ["email", "password", "confirm_password"],
     },
     {
       title: "Usuario",
       icon: <FaIdCard />,
       content: "Información personal",
-      fields: ["fullName", "phone", "address", "addressNumber", "provinceId", "localityId"],
+      fields: ["full_name", "phone", "street", "address_number", "province_id", "locality_id"],
     },
   ];
 
@@ -89,43 +76,45 @@ export default function RegisterUserPage() {
       const firebaseUser = await createUserWithEmailAndPassword(auth, values.email, values.password);
 
       await updateProfile(firebaseUser.user, {
-        displayName: values.fullName,
+        displayName: values.full_name,
       });
 
-      // Preparar los datos para el backend
       const payload = {
         users: [
           {
             email: values.email,
             password: values.password,
-            name: values.fullName,
+            name: values.full_name,
             phone: `${values.phonePrefix}${values.phone}`,
-            external_id: firebaseUser.user.uid, // Usamos el UID de Firebase como external_id
+            external_id: firebaseUser.user.uid,
             addresses: [
               {
-                street: values.address,
-                number: values.addressNumber,
+                street: values.street,
+                number: values.address_number,
                 apartment: values.apartment,
                 neighborhood: values.neighborhood,
-                zip_code: values.zipCode,
+                zip_code: values.zip_code,
                 is_primary: true,
                 show_address: values.showAddress,
-                province_id: values.provinceId,
-                locality_id: values.localityId,
+                province_id: values.province_id,
+                locality_id: values.locality_id,
               },
             ],
           },
         ],
       };
 
-      // Llamar al servicio de registro del backend
       await registerUser(payload);
 
-      messageApi.open({
-        type: "success",
-        content: "Registro completado exitosamente!",
-      });
-      navigate("/profile");
+      messageApi
+        .open({
+          type: "success",
+          content: "Registro completado exitosamente!",
+          duration: 1.5,
+        })
+        .then(() => {
+          navigate("/profile");
+        });
     } catch (error) {
       messageApi.open({
         type: "error",
@@ -198,7 +187,7 @@ export default function RegisterUserPage() {
             </Form.Item>
 
             <Form.Item
-              name="confirmPassword"
+              name="confirm_password"
               label={
                 <span>
                   <FaLock style={{ marginRight: 8 }} />
@@ -225,7 +214,7 @@ export default function RegisterUserPage() {
           {/* Paso 2: Datos del Usuario */}
           <div style={{ display: current === 1 ? "block" : "none" }}>
             <Form.Item
-              name="fullName"
+              name="full_name"
               label={
                 <span>
                   <FaUser style={{ marginRight: 8 }} />
@@ -274,145 +263,19 @@ export default function RegisterUserPage() {
               </Row>
             </Form.Item>
 
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  name="provinceId"
-                  label={
-                    <span>
-                      <FaMapMarkerAlt style={{ marginRight: 8 }} />
-                      Provincia
-                    </span>
-                  }
-                  rules={[{ required: true, message: "Seleccioná una provincia" }]}
-                >
-                  <Select
-                    showSearch
-                    placeholder="Seleccionar provincia"
-                    onChange={handleProvinceChange}
-                    onSearch={handleProvinceSearch}
-                    filterOption={false}
-                    loading={loading.provinces}
-                    onPopupScroll={(e) => {
-                      const target = e.currentTarget;
-                      const isBottom = target.scrollHeight - target.scrollTop <= target.clientHeight + 5;
-                      const hasMore =
-                        pagination.provinces.page * pagination.provinces.pageSize < pagination.provinces.total;
-
-                      if (isBottom && hasMore && !loading.moreProvinces) {
-                        loadMoreProvinces();
-                      }
-                    }}
-                  >
-                    {provinces.map((province) => (
-                      <Option key={province.id} value={province.id}>
-                        {province.name}
-                      </Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  name="localityId"
-                  label={
-                    <span>
-                      <FaCity style={{ marginRight: 8 }} />
-                      Localidad
-                    </span>
-                  }
-                  rules={[{ required: true, message: "Seleccioná una localidad" }]}
-                >
-                  <Select
-                    showSearch
-                    placeholder={selectedProvince ? "Seleccionar localidad" : "Seleccione provincia primero"}
-                    optionFilterProp="children"
-                    disabled={!selectedProvince}
-                    onSearch={handleLocalitySearch}
-                    filterOption={false}
-                    loading={loading.localities}
-                    onPopupScroll={(e) => {
-                      const target = e.currentTarget;
-                      const isBottom = target.scrollHeight - target.scrollTop <= target.clientHeight + 5;
-                      const hasMore =
-                        pagination.localities.page * pagination.localities.pageSize < pagination.localities.total;
-
-                      if (isBottom && hasMore && !loading.moreLocalities) {
-                        loadMoreLocalities();
-                      }
-                    }}
-                  >
-                    {localities.map((locality) => (
-                      <Option key={locality.id} value={locality.id}>
-                        {locality.name}
-                      </Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Form.Item
-              name="address"
-              label={
-                <span>
-                  <FaHome style={{ marginRight: 8 }} />
-                  Dirección completa
-                </span>
-              }
-              rules={[{ required: true, message: "Por favor ingresá tu dirección" }]}
-            >
-              <TextArea placeholder="Calle, número, departamento" rows={2} />
-            </Form.Item>
-
-            <Row gutter={16}>
-              <Col span={8}>
-                <Form.Item
-                  name="addressNumber"
-                  label="Número"
-                  rules={[
-                    { required: true, message: "Ingresá el número" },
-                    {
-                      pattern: /^\d+$/,
-                      message: "Solo se permiten números",
-                    },
-                  ]}
-                >
-                  <Input
-                    placeholder="1234"
-                    onKeyDown={(e) => {
-                      if (
-                        !/\d/.test(e.key) &&
-                        !["Backspace", "Delete", "Tab", "ArrowLeft", "ArrowRight"].includes(e.key)
-                      ) {
-                        e.preventDefault();
-                      }
-                    }}
-                    onInput={(e) => {
-                      e.target.value = e.target.value.replace(/\D/g, "");
-                    }}
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={8}>
-                <Form.Item name="apartment" label="Depto/Piso">
-                  <Input placeholder="B" />
-                </Form.Item>
-              </Col>
-              <Col span={8}>
-                <Form.Item name="zipCode" label="Código Postal">
-                  <Input placeholder="C1430" />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Form.Item name="neighborhood" label="Barrio">
-              <Input placeholder="Cancha de la liga" />
-            </Form.Item>
-
-            <Form.Item name="showAddress" valuePropName="checked" initialValue={false}>
-              <Checkbox>Mostrar dirección en el perfil público</Checkbox>
-            </Form.Item>
+            <AddressForm
+              form={form}
+              provinces={provinces}
+              localities={localities}
+              selectedProvince={selectedProvince}
+              loading={loading}
+              pagination={pagination}
+              handleProvinceSearch={handleProvinceSearch}
+              handleLocalitySearch={handleLocalitySearch}
+              handleProvinceChange={handleProvinceChange}
+              loadMoreProvinces={loadMoreProvinces}
+              loadMoreLocalities={loadMoreLocalities}
+            />
           </div>
 
           <Form.Item

@@ -21,6 +21,8 @@ export default function MainLayout() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
+          padding: "24px",
+          flex: 1,
         }}
       >
         <Outlet />

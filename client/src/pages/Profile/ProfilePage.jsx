@@ -236,8 +236,8 @@ const ProfilePage = () => {
         </Col>
         <Col>
           <Space size="middle">
-            <Button type="primary" icon={<FaPlus />} onClick={() => navigate("/register-pet")}>
-              Nueva mascota
+            <Button type="primary" icon={<FaPlus />} onClick={() => setRequestTagModalVisible(true)}>
+              Nueva chapita
             </Button>
             <Dropdown menu={userMenu} placement="bottomRight">
               <Space style={{ cursor: "pointer" }}>

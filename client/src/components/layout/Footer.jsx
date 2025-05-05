@@ -13,10 +13,12 @@ export default function Footer() {
   return (
     <AntFooter
       style={{
-        background:  isLandingPage ? "transparent" : "#000" ,
+        background: isLandingPage ? "transparent" : "#000",
         color: "white",
         padding: "20px 20px",
         textAlign: "center",
+        width: "100%",
+        marginTop: "auto",
       }}
     >
       <div style={{ marginBottom: "16px" }}>
