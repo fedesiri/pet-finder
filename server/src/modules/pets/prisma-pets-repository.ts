@@ -4,6 +4,7 @@ import * as bcrypt from 'bcrypt';
 import * as dayjs from 'dayjs';
 import { DatabaseService } from 'src/helpers/database.service';
 import { CreateUserDto } from './dto/create-user-dto';
+import { PetWithPhotosAndUsersRepositoryDto } from './dto/get-pet-datail.dto';
 import { PetWithPhotosRepositoryDto } from './dto/get-pets-from-user';
 import { UserProfileOutputRepositoryDto } from './dto/get-user-profile.dto';
 import { PetWithUser } from './pets.controller';
@@ -271,6 +272,43 @@ export class PetsRepository {
             id: true,
             url: true,
             is_primary: true,
+          },
+        },
+      },
+    });
+  }
+
+  async getPetDetail(
+    pet_id: string,
+    user_id: string,
+  ): Promise<PetWithPhotosAndUsersRepositoryDto | null> {
+    return this.databaseService.pet.findFirst({
+      where: {
+        id: pet_id,
+        users: {
+          some: {
+            external_id: user_id,
+          },
+        },
+      },
+      include: {
+        photos: {
+          select: {
+            id: true,
+            url: true,
+            is_primary: true,
+          },
+          orderBy: { is_primary: 'desc' },
+        },
+        users: {
+          include: {
+            addresses: {
+              include: {
+                province: { select: { name: true } },
+                locality: { select: { name: true } },
+              },
+              orderBy: { is_primary: 'desc' },
+            },
           },
         },
       },

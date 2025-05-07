@@ -12,7 +12,6 @@ import {
   Space,
   Spin,
   Tabs,
-  Tag,
   Typography,
 } from "antd";
 import React, { useContext, useState } from "react";
@@ -23,17 +22,16 @@ import {
   FaEnvelope,
   FaHome,
   FaIdCard,
-  FaMapMarkerAlt,
   FaPaw,
   FaPhone,
   FaPlus,
   FaQrcode,
   FaSignOutAlt,
-  FaThumbtack,
   FaUser,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import RequestTagModal from "../../components/RequestTagModal";
+import AddressCard from "../../components/ui/AddressCard";
 import PetCard from "../../components/ui/PetCard";
 import { AuthContext } from "../../context/AuthContext";
 import { usePetsFromUser } from "../../hooks/usePetsFromUser";
@@ -115,6 +113,7 @@ const ProfilePage = () => {
                 ...pet,
                 photo: pet.photos?.find((p) => p.is_primary)?.url || pet.photos?.[0]?.url,
               }}
+              onClick={() => navigate(`/pets/${pet.id}`)}
               actions={[
                 <Button key="edit" type="link" icon={<FaEdit />} onClick={() => navigate(`/edit-pet/${pet.id}`)}>
                   Editar
@@ -175,20 +174,7 @@ const ProfilePage = () => {
           <Row gutter={[16, 16]}>
             {userData.addresses.map((address) => (
               <Col xs={24} sm={12} key={address.id}>
-                <Card extra={address.is_primary && <Tag color="green">Principal</Tag>}>
-                  <Space direction="vertical">
-                    <Text strong>
-                      <FaMapMarkerAlt style={{ marginRight: 8 }} />
-                      {address.street} {address.number} {address.apartment && `, ${address.apartment}`}
-                    </Text>
-                    <Text>
-                      <FaThumbtack style={{ marginRight: 8 }} />
-                      {address.neighborhood ? `${address.neighborhood}, ` : ""}
-                      {address.locality}, {address.province}
-                    </Text>
-                    <Text type="secondary">CP: {address.zip_code ? address.zip_code : "N/A"}</Text>
-                  </Space>
-                </Card>
+                <AddressCard address={address} extraActions={<Button type="text" icon={<FaEdit />} />} />
               </Col>
             ))}
           </Row>

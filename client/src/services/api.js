@@ -117,3 +117,19 @@ export const registerPetWithCode = async (data, token) => {
     );
   }
 };
+
+export const getPetDetail = async (token, pet_id) => {
+  try {
+    const response = await api.get(`/pets/${pet_id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error get pet detail:", error);
+    throw new Error(
+      error.response?.data?.error?.message || error.response?.data?.message || "Error al obtener detalle de la mascota"
+    );
+  }
+};

@@ -136,7 +136,7 @@ const HomePage = () => {
             <Button type="primary" icon={<FaPlus />} onClick={() => navigate("/report-pet")}>
               Reportar mascota
             </Button>
-            <Dropdown overlay={userMenu} placement="bottomRight">
+            <Dropdown menu={userMenu} placement="bottomRight">
               <Space style={{ cursor: "pointer" }}>
                 <Avatar src={user.photoURL} icon={<FaUser />} />
                 <Text strong>{user.displayName || user.email.split("@")[0]}</Text>
@@ -176,7 +176,7 @@ const HomePage = () => {
                     <Text type="secondary">{report.pet.breed}</Text>
                     <Divider style={{ margin: "8px 0" }} />
                     <Text strong>Última vez visto:</Text>
-                    <Text block>{report.lastSeenAddress}</Text>
+                    <Text block="true">{report.lastSeenAddress}</Text>
                     <Text type="secondary">{new Date(report.lastSeenDate).toLocaleDateString()}</Text>
                   </>
                 }

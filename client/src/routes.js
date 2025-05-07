@@ -7,6 +7,7 @@ import HomePage from "./pages/Home/HomePage";
 import LandingPage from "./pages/Home/LandingPage";
 import LoginPage from "./pages/Login/LoginPage";
 import RegisterUserPage from "./pages/Login/RegisterUserPage";
+import PetDetailPage from "./pages/PetDetail/PetDetailPage";
 import ProfilePage from "./pages/Profile/ProfilePage";
 
 const router = createBrowserRouter([
@@ -55,6 +56,14 @@ const router = createBrowserRouter([
       {
         path: "/register-pet",
         element: <RegisterPetWithCode />,
+      },
+      {
+        path: "/pets/:id",
+        element: (
+          <ProtectedRoute>
+            <PetDetailPage />,
+          </ProtectedRoute>
+        ),
       },
     ],
   },

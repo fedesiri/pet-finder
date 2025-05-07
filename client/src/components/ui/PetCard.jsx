@@ -1,12 +1,11 @@
 import { Card, Image, Space, Tag, Tooltip, Typography } from "antd";
 import React from "react";
 import { FaCat, FaDog, FaPaw, FaQrcode } from "react-icons/fa";
-import { GiBirdTwitter } from "react-icons/gi";
 import { IoMdPaw } from "react-icons/io";
 
 const { Text } = Typography;
 
-const PetCard = ({ pet, actions = [] }) => {
+const PetCard = ({ pet, actions, onClick }) => {
   // Función para obtener el icono y color según la especie
   const getSpeciesInfo = () => {
     switch (pet.species) {
@@ -14,8 +13,6 @@ const PetCard = ({ pet, actions = [] }) => {
         return { icon: FaDog, color: "blue", label: "Perro" };
       case "CAT":
         return { icon: FaCat, color: "orange", label: "Gato" };
-      case "BIRD":
-        return { icon: GiBirdTwitter, color: "green", label: "Ave" };
       default:
         return { icon: IoMdPaw, color: "purple", label: "Mascota" };
     }
@@ -45,8 +42,17 @@ const PetCard = ({ pet, actions = [] }) => {
   return (
     <Card
       hoverable
+      onClick={onClick}
       cover={
-        <div style={{ height: "200px", overflow: "hidden" }}>
+        <div
+          style={{
+            height: "200px",
+            overflow: "hidden",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
           {photoUrl ? (
             <Image
               src={photoUrl}
@@ -75,7 +81,7 @@ const PetCard = ({ pet, actions = [] }) => {
         </div>
       }
       actions={actions}
-      bodyStyle={{ padding: "16px" }}
+      styles={{ body: { padding: "16px" } }}
     >
       <Card.Meta
         title={

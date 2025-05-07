@@ -3,6 +3,7 @@ import { LostReport, Species } from '@prisma/client';
 import * as dayjs from 'dayjs';
 import * as QRCode from 'qrcode';
 import { RegisterUserDto, RegisterUserOutputDto } from './dto/create-user-dto';
+import { PetDetailDto } from './dto/get-pet-datail.dto';
 import { PetResponseDto } from './dto/get-pets-from-user';
 import { UserProfileResponseDto } from './dto/get-user-profile.dto';
 import { RegisterPetWithCodeDto, RequestPetCodeDto } from './dto/pet-code.dto';
@@ -269,6 +270,45 @@ export class PetsService {
         id: photo.id,
         url: photo.url,
         is_primary: photo.is_primary,
+      })),
+    };
+  }
+
+  async getPetDetail(pet_id: string, user_id: string): Promise<PetDetailDto> {
+    const pet = await this.petsRepository.getPetDetail(pet_id, user_id);
+    if (!pet) throw new PetsError('PET-807');
+
+    return {
+      id: pet.id,
+      name: pet.name,
+      species: pet.species,
+      breed: pet.breed ?? undefined,
+      color: pet.color,
+      distinctive_marks: pet.distinctive_marks ?? undefined,
+      birthdate: pet.birthdate ?? undefined,
+      pet_code_id: pet.pet_code_id,
+      photos: pet.photos.map((photo) => ({
+        id: photo.id,
+        url: photo.url,
+        is_primary: photo.is_primary,
+      })),
+      users: pet.users.map((user) => ({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        addresses:
+          user.addresses?.map((address) => ({
+            id: address.id,
+            street: address.street,
+            number: address.number,
+            apartment: address.apartment,
+            neighborhood: address.neighborhood,
+            zip_code: address.zip_code,
+            is_primary: address.is_primary,
+            province: address.province.name,
+            locality: address.locality.name,
+          })) ?? [],
       })),
     };
   }

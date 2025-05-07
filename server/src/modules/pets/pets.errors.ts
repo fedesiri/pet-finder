@@ -23,6 +23,7 @@ const dictionary = {
   'PET-804': 'Pet code already activated',
   'PET-805': 'Address is not valid for delivery',
   'PET-806': 'Error generating QR code',
+  'PET-807': 'Pet not found',
 };
 
 type PetsErrorCode = keyof typeof dictionary;
