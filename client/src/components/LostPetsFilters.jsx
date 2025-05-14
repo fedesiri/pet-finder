@@ -3,10 +3,15 @@ import { Button, Col, Collapse, Input, Row, Select, Space, Tag } from "antd";
 import { useEffect } from "react";
 import { useProvincesAndLocalities } from "../hooks/useProvincesAndLocalities";
 
-const { Panel } = Collapse;
 const { Option } = Select;
 
 const LostPetsFilters = ({ filters, onFilterChange, userLocation }) => {
+  const NON_FILTER_KEYS = ["is_active", "page", "items_per_page"];
+
+  const activeFiltersCount = Object.entries(filters).filter(([key, value]) => {
+    return !NON_FILTER_KEYS.includes(key) && value !== null && value !== undefined && value !== "";
+  }).length;
+
   const {
     provinces,
     localities,
@@ -31,37 +36,19 @@ const LostPetsFilters = ({ filters, onFilterChange, userLocation }) => {
     }
   }, [filters.province_id, filters.locality_id]);
 
-  return (
-    <Collapse
-      bordered={false}
-      defaultActiveKey={["1"]}
-      style={{ marginBottom: 24, background: "transparent" }}
-      expandIconPosition="end"
-    >
-      <Panel
-        header={
-          <Space>
-            <FilterOutlined />
-            <span style={{ fontWeight: 500 }}>Filtros avanzados</span>
-            {Object.values(filters).filter(Boolean).length > 0 && (
-              <Tag color="blue">{Object.values(filters).filter(Boolean).length} activos</Tag>
-            )}
-          </Space>
-        }
-        key="1"
-        extra={
-          <Button
-            size="small"
-            type="text"
-            icon={<CloseOutlined />}
-            onClick={(e) => {
-              e.stopPropagation();
-              Object.keys(filters).forEach((key) => onFilterChange(key, null));
-            }}
-          />
-        }
-      >
+  const collapseItems = [
+    {
+      key: "1",
+      label: (
+        <Space>
+          <FilterOutlined />
+          <span style={{ fontWeight: 500 }}>Filtros avanzados</span>
+          {activeFiltersCount > 0 && <Tag color="blue">{activeFiltersCount} activos</Tag>}
+        </Space>
+      ),
+      children: (
         <Row gutter={[16, 16]}>
+          {/* Provincia */}
           <Col xs={24} sm={12} md={8} lg={6}>
             <div style={{ marginBottom: 16 }}>
               <label style={{ display: "block", marginBottom: 8, fontWeight: 500 }}>Provincia</label>
@@ -95,6 +82,7 @@ const LostPetsFilters = ({ filters, onFilterChange, userLocation }) => {
             </div>
           </Col>
 
+          {/* Localidad */}
           <Col xs={24} sm={12} md={8} lg={6}>
             <div style={{ marginBottom: 16 }}>
               <label style={{ display: "block", marginBottom: 8, fontWeight: 500 }}>Localidad</label>
@@ -124,7 +112,7 @@ const LostPetsFilters = ({ filters, onFilterChange, userLocation }) => {
                 }
                 onChange={(value) => {
                   onFilterChange("locality_id", value);
-                  loadLocalityInfo(filters.province_id, value); // Cargar la información de la localidad seleccionada
+                  loadLocalityInfo(filters.province_id, value);
                 }}
                 onSearch={handleLocalitySearch}
                 showSearch
@@ -156,6 +144,8 @@ const LostPetsFilters = ({ filters, onFilterChange, userLocation }) => {
               </Select>
             </div>
           </Col>
+
+          {/* Nombre de mascota */}
           <Col xs={24} sm={12} md={8} lg={6}>
             <div style={{ marginBottom: 16 }}>
               <label style={{ display: "block", marginBottom: 8, fontWeight: 500 }}>Nombre de mascota</label>
@@ -168,6 +158,7 @@ const LostPetsFilters = ({ filters, onFilterChange, userLocation }) => {
             </div>
           </Col>
 
+          {/* Raza */}
           <Col xs={24} sm={12} md={8} lg={6}>
             <div style={{ marginBottom: 16 }}>
               <label style={{ display: "block", marginBottom: 8, fontWeight: 500 }}>Raza</label>
@@ -180,8 +171,29 @@ const LostPetsFilters = ({ filters, onFilterChange, userLocation }) => {
             </div>
           </Col>
         </Row>
-      </Panel>
-    </Collapse>
+      ),
+      extra: (
+        <Button
+          size="small"
+          type="text"
+          icon={<CloseOutlined />}
+          onClick={(e) => {
+            e.stopPropagation();
+            Object.keys(filters).forEach((key) => onFilterChange(key, null));
+          }}
+        />
+      ),
+    },
+  ];
+
+  return (
+    <Collapse
+      bordered={false}
+      defaultActiveKey={["1"]}
+      style={{ marginBottom: 24, background: "transparent" }}
+      expandIconPosition="end"
+      items={collapseItems} // Usamos la nueva prop `items`
+    />
   );
 };
 

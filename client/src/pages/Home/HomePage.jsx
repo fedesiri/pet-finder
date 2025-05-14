@@ -131,7 +131,7 @@ const HomePage = () => {
               description={
                 <span>
                   {Object.values(filters).filter(Boolean).length > 0
-                    ? `No hay mascotas perdidas en ${filters.locality_id}  que coincidan con tu búsqueda`
+                    ? `No hay mascotas perdidas en la zona que coincidan con tu búsqueda`
                     : "No hay mascotas perdidas reportadas en tu zona"}
                 </span>
               }
