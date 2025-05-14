@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { LostReport, Species } from '@prisma/client';
+import { Species } from '@prisma/client';
 import * as dayjs from 'dayjs';
 import * as QRCode from 'qrcode';
 import { RegisterUserDto, RegisterUserOutputDto } from './dto/create-user-dto';
@@ -53,24 +53,6 @@ export class PetsService {
     }
 
     return pet;
-  }
-
-  async reportPetLost(data: {
-    pet_id: string;
-    last_seen_address: string;
-    last_seen_date: Date;
-    comments?: string;
-    province_id: string;
-    locality_id: string;
-  }): Promise<LostReport> {
-    return this.petsRepository.createLostReport({
-      pet_id: data.pet_id,
-      last_seen_address: data.last_seen_address,
-      last_seen_date: data.last_seen_date,
-      comments: data.comments,
-      province_id: data.province_id,
-      locality_id: data.locality_id,
-    });
   }
 
   async getUserProfile(external_id: string): Promise<UserProfileResponseDto> {

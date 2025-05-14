@@ -106,4 +106,21 @@ export class ProvincesRepository {
       take,
     });
   }
+
+  async getLocalityById(
+    province_id: string,
+    locality_id: string,
+  ): Promise<{ id: string; name: string; province_id: string } | null> {
+    return this.databaseService.locality.findUnique({
+      where: {
+        id: locality_id,
+        province_id,
+      },
+      select: {
+        id: true,
+        name: true,
+        province_id: true,
+      },
+    });
+  }
 }

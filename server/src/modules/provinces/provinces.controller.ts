@@ -97,4 +97,39 @@ export class ProvincesController {
       return response;
     }
   }
+
+  @Get(':province_id/locality/:locality_id')
+  async getLocalityById(
+    @Param('province_id') province_id: string,
+    @Param('locality_id') locality_id: string,
+  ): Promise<Envelope<{ id: string; name: string; province_id: string }>> {
+    const response: Envelope<{
+      id: string;
+      name: string;
+      province_id: string;
+    }> = {
+      success: true,
+      data: null,
+      error: null,
+      pagination: null,
+    };
+    try {
+      const locality = await this.provincesService.getLocalityById(
+        province_id,
+        locality_id,
+      );
+      response.data = locality;
+      return response;
+    } catch (error) {
+      response.success = false;
+      response.error =
+        error instanceof Error
+          ? error
+          : new Error(
+              'Error in /provinces/:province_id/localities/:locality_id controller',
+            );
+      console.error(error);
+      return response;
+    }
+  }
 }

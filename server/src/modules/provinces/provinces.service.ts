@@ -64,4 +64,20 @@ export class ProvincesService {
 
     return { localities, total_items };
   }
+
+  async getLocalityById(
+    province_id: string,
+    locality_id: string,
+  ): Promise<{ id: string; name: string; province_id: string }> {
+    const locality = await this.provincesRepository.getLocalityById(
+      province_id,
+      locality_id,
+    );
+
+    if (!locality) {
+      throw new Error('Locality not found');
+    }
+
+    return locality;
+  }
 }

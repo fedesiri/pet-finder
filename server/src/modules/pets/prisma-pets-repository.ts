@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { LostReport, Pet, PetCode, Species } from '@prisma/client';
+import { Pet, PetCode, Species } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import * as dayjs from 'dayjs';
 import { DatabaseService } from 'src/helpers/database.service';
 import { CreateUserDto } from './dto/create-user-dto';
 import { PetWithPhotosAndUsersRepositoryDto } from './dto/get-pet-datail.dto';
@@ -90,27 +89,6 @@ export class PetsRepository {
       where: { pet_code_id },
       include: {
         users: true,
-      },
-    });
-  }
-
-  async createLostReport(data: {
-    pet_id: string;
-    last_seen_address: string;
-    last_seen_date: Date;
-    province_id: string;
-    locality_id: string;
-    comments?: string;
-  }): Promise<LostReport> {
-    return this.databaseService.lostReport.create({
-      data: {
-        pet_id: data.pet_id,
-        last_seen_address: data.last_seen_address,
-        last_seen_date: dayjs(data.last_seen_date).toDate(),
-        province_id: data.province_id,
-        locality_id: data.locality_id,
-        comments: data.comments,
-        is_active: true,
       },
     });
   }

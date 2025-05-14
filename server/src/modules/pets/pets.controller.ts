@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
-import { LostReport, Prisma, Species } from '@prisma/client';
+import { Prisma, Species } from '@prisma/client';
 import { CurrentUser } from 'src/decorators/user.decorator';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { Envelope } from 'src/types/envelope.type';
@@ -57,42 +57,6 @@ export class PetsController {
         error instanceof Error
           ? error
           : new Error('Error in pets/qr/:code controller');
-      console.error(error);
-      return response;
-    }
-  }
-
-  @Post(':pet_id/lost')
-  async reportLost(
-    @Param('pet_id') pet_id: string,
-    @Body()
-    data: {
-      last_seen_address: string;
-      last_seen_date: Date;
-      province_id: string;
-      locality_id: string;
-      comments?: string;
-    },
-  ): Promise<Envelope<LostReport>> {
-    const response: Envelope<LostReport> = {
-      success: true,
-      data: null,
-      error: null,
-      pagination: null,
-    };
-
-    try {
-      response.data = await this.petsService.reportPetLost({
-        pet_id,
-        ...data,
-      });
-      return response;
-    } catch (error) {
-      response.success = false;
-      response.error =
-        error instanceof Error
-          ? error
-          : new Error('Error in pets/:id/lost controller');
       console.error(error);
       return response;
     }
