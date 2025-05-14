@@ -34,6 +34,16 @@ export const getLocalities = async (provinceId, { page = 1, items_per_page = 10,
   return response.data;
 };
 
+export const getLocalityById = async (province_id, locality_id) => {
+  try {
+    const response = await api.get(`/provinces/${province_id}/locality/${locality_id}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching lost pets:", error);
+    throw error;
+  }
+};
+
 export const registerUser = async (data) => {
   try {
     const response = await api.post("/pets/register-user", data);
@@ -131,5 +141,20 @@ export const getPetDetail = async (token, pet_id) => {
     throw new Error(
       error.response?.data?.error?.message || error.response?.data?.message || "Error al obtener detalle de la mascota"
     );
+  }
+};
+
+export const getLostPets = async (token, { page = 1, items_per_page = 10, ...filters } = {}) => {
+  try {
+    const response = await api.get("/lost-pets", {
+      params: { page, items_per_page, ...filters },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching lost pets:", error);
+    throw error;
   }
 };

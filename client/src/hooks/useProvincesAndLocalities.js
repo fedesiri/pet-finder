@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { getLocalities, getProvinces } from "../services/api";
+import { getLocalities, getLocalityById, getProvinces } from "../services/api";
 
 export const useProvincesAndLocalities = () => {
   // Estado inicial
@@ -20,6 +20,7 @@ export const useProvincesAndLocalities = () => {
     provinces: { page: 1, pageSize: 10, total: 0 },
     localities: { page: 1, pageSize: 10, total: 0 },
   });
+  const [selectedLocalityInfo, setSelectedLocalityInfo] = useState(null);
 
   // Función para cargar provincias (memoizada con useCallback)
   const loadProvinces = useCallback(
@@ -113,8 +114,20 @@ export const useProvincesAndLocalities = () => {
   const handleProvinceChange = (value) => {
     setSelectedProvince(value);
     setLocalities([]);
+    setSelectedLocalityInfo(null);
     setSearch((prev) => ({ ...prev, locality: "" }));
   };
+
+  const loadLocalityInfo = useCallback(async (provinceId, localityId) => {
+    if (!localityId) return;
+
+    try {
+      const response = await getLocalityById(provinceId, localityId);
+      setSelectedLocalityInfo(response.data);
+    } catch (error) {
+      console.error("Error loading locality info:", error);
+    }
+  }, []);
 
   const loadMoreProvinces = () => {
     if (!loading.moreProvinces) {
@@ -139,5 +152,7 @@ export const useProvincesAndLocalities = () => {
     handleProvinceChange,
     loadMoreProvinces,
     loadMoreLocalities,
+    loadLocalityInfo,
+    selectedLocalityInfo,
   };
 };
