@@ -8,6 +8,7 @@ import LandingPage from "./pages/Home/LandingPage";
 import LoginPage from "./pages/Login/LoginPage";
 import RegisterUserPage from "./pages/Login/RegisterUserPage";
 import PetDetailPage from "./pages/PetDetail/PetDetailPage";
+import PublicPetDetailPage from "./pages/PetDetail/PublicPetDetailPage";
 import ProfilePage from "./pages/Profile/ProfilePage";
 
 const router = createBrowserRouter([
@@ -61,9 +62,13 @@ const router = createBrowserRouter([
         path: "/pets/:id",
         element: (
           <ProtectedRoute>
-            <PetDetailPage />,
+            <PetDetailPage />
           </ProtectedRoute>
         ),
+      },
+      {
+        path: "/lost-pets/:id",
+        element: <PublicPetDetailPage />,
       },
     ],
   },

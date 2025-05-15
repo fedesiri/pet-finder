@@ -144,6 +144,20 @@ export const getPetDetail = async (token, pet_id) => {
   }
 };
 
+export const getPublicPetDetail = async (pet_id) => {
+  try {
+    const response = await api.get(`/pets/public/${pet_id}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error get pet/public detail:", error);
+    throw new Error(
+      error.response?.data?.error?.message ||
+        error.response?.data?.message ||
+        "Error al obtener detalle publico de la mascota"
+    );
+  }
+};
+
 export const getLostPets = async (token, { page = 1, items_per_page = 10, ...filters } = {}) => {
   try {
     const response = await api.get("/lost-pets", {

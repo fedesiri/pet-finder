@@ -149,6 +149,7 @@ const HomePage = () => {
               <Col key={report.id} xs={24} sm={12} md={8} lg={6}>
                 <Card
                   hoverable
+                  onClick={() => navigate(`/lost-pets/${report.pet.id}`)}
                   style={{
                     height: "100%",
                     display: "flex",
@@ -156,6 +157,7 @@ const HomePage = () => {
                     borderRadius: 8,
                     boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
                     overflow: "hidden",
+                    cursor: "pointer",
                   }}
                   bodyStyle={{
                     padding: 16,

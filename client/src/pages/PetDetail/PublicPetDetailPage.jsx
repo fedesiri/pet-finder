@@ -3,14 +3,14 @@ import React, { useContext } from "react";
 import { FaCog, FaHome, FaPaw, FaSignOutAlt, FaUser } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
-import { usePetDetail } from "../../hooks/usePetDetail";
+import { usePublicPetDetail } from "../../hooks/usePublicPetDetail";
 import PetActionButtons from "./PetActionButons";
 import PetInfoSection from "./PetInfoSection";
 import PetPhotosGallery from "./PetPhotosGalery";
 import PetUsersSection from "./PetUsersSection";
 
-const PetDetailPage = () => {
-  const { pet, loading, error, refreshData } = usePetDetail();
+const PublicPetDetailPage = () => {
+  const { pet, loading, error, refreshData } = usePublicPetDetail();
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -111,4 +111,4 @@ const PetDetailPage = () => {
   );
 };
 
-export default PetDetailPage;
+export default PublicPetDetailPage;

@@ -1,12 +1,9 @@
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { AuthContext } from "../context/AuthContext";
-import { getPetDetail } from "../services/api";
+import { getPublicPetDetail } from "../services/api";
 
-export const usePetDetail = () => {
+export const usePublicPetDetail = () => {
   const { id } = useParams();
-  const { user } = useContext(AuthContext);
-  const token = user?.accessToken;
   const [pet, setPet] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -15,7 +12,8 @@ export const usePetDetail = () => {
     const fetchPet = async () => {
       try {
         setLoading(true);
-        const response = await getPetDetail(token, id);
+        const response = await getPublicPetDetail(id);
+
         if (!response.success) {
           throw new Error(response.error?.message || "Error al cargar la mascota");
         }
@@ -27,19 +25,19 @@ export const usePetDetail = () => {
         setPet(response.data);
       } catch (err) {
         setError(err);
-        console.error("Error fetching pet detail:", err);
+        console.error("Error fetching public pet detail:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPet();
-  }, [token, id]);
+    if (id) fetchPet();
+  }, [id]); // Dependencia solo del id
 
   const refreshData = async () => {
     try {
       setLoading(true);
-      const response = await getPetDetail(token, id);
+      const response = await getPublicPetDetail(id);
       setPet(response.data);
     } catch (err) {
       setError(err);
