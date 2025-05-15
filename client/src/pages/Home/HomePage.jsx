@@ -1,18 +1,4 @@
-import {
-  Avatar,
-  Button,
-  Card,
-  Col,
-  Divider,
-  Dropdown,
-  Empty,
-  Menu,
-  Pagination,
-  Row,
-  Space,
-  Spin,
-  Typography,
-} from "antd";
+import { Avatar, Button, Card, Col, Divider, Dropdown, Empty, Pagination, Row, Space, Spin, Typography } from "antd";
 import * as dayjs from "dayjs";
 import React, { useContext, useEffect } from "react";
 import { FaCog, FaPaw, FaPlus, FaSignOutAlt, FaUser } from "react-icons/fa";
@@ -52,35 +38,32 @@ const HomePage = () => {
     return <Spin fullscreen />;
   }
 
-  const userMenu = (
-    <Menu
-      items={[
-        {
-          key: "profile",
-          icon: <FaUser style={{ marginRight: "8px" }} />,
-          label: "Mi perfil",
-          onClick: () => navigate("/profile"),
-        },
-        {
-          key: "settings",
-          icon: <FaCog style={{ marginRight: "8px" }} />,
-          label: "Configuración",
-        },
-        {
-          type: "divider",
-        },
-        {
-          key: "logout",
-          icon: <FaSignOutAlt style={{ marginRight: "8px" }} />,
-          label: "Cerrar sesión",
-          onClick: () => {
-            logout();
-            navigate("/");
-          },
-        },
-      ]}
-    />
-  );
+  const items = [
+    {
+      key: "profile",
+      icon: <FaUser />,
+      label: "Mi perfil",
+      onClick: () => navigate("/profile"),
+    },
+    {
+      key: "settings",
+      icon: <FaCog />,
+      label: "Configuración",
+    },
+    {
+      type: "divider",
+    },
+    {
+      key: "logout",
+      icon: <FaSignOutAlt />,
+      label: "Cerrar sesión",
+      danger: true,
+      onClick: () => {
+        logout();
+        navigate("/");
+      },
+    },
+  ];
 
   return (
     <div
@@ -106,8 +89,8 @@ const HomePage = () => {
               <Button type="primary" icon={<FaPlus />} onClick={() => navigate("/report-pet")}>
                 Reportar mascota
               </Button>
-              <Dropdown menu={userMenu} placement="bottomRight">
-                <Space style={{ cursor: "pointer" }}>
+              <Dropdown menu={{ items }} placement="bottomRight" trigger={["click"]}>
+                <Space>
                   <Avatar src={user.photoURL} icon={<FaUser />} />
                   <Text strong>{user.displayName || user.email.split("@")[0]}</Text>
                 </Space>
