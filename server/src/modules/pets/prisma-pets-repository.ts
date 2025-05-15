@@ -292,4 +292,31 @@ export class PetsRepository {
       },
     });
   }
+
+  async getPublicPetDetail(pet_id: string) {
+    return this.databaseService.pet.findUnique({
+      where: { id: pet_id },
+      include: {
+        photos: {
+          select: {
+            id: true,
+            url: true,
+            is_primary: true,
+          },
+          orderBy: { is_primary: 'desc' },
+        },
+        users: {
+          include: {
+            addresses: {
+              include: {
+                province: { select: { name: true } },
+                locality: { select: { name: true } },
+              },
+              orderBy: { is_primary: 'desc' },
+            },
+          },
+        },
+      },
+    });
+  }
 }

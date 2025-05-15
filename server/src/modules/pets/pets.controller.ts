@@ -252,6 +252,31 @@ export class PetsController {
       return response;
     }
   }
+
+  @Get('public/:id')
+  async getPublicPetDetail(
+    @Param('id') id: string,
+  ): Promise<Envelope<PetDetailDto>> {
+    const response: Envelope<PetDetailDto> = {
+      success: true,
+      data: null,
+      error: null,
+      pagination: null,
+    };
+
+    try {
+      response.data = await this.petsService.getPublicPetDetail(id);
+      return response;
+    } catch (error) {
+      response.success = false;
+      response.error =
+        error instanceof Error
+          ? error
+          : new Error('Error in pets/public/:id controller');
+      console.error(error);
+      return response;
+    }
+  }
 }
 
 export type PetWithUser = Prisma.PetGetPayload<{
