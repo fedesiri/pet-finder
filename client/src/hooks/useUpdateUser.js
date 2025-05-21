@@ -11,26 +11,23 @@ export const useUpdateUser = () => {
 
     try {
       const response = await updateUser(token, data);
-      console.log("soy reponse en el hook a ver como estoy llegando! ", response);
+
+      if (!response.success) {
+        throw response;
+      }
+
       return {
         success: true,
         updatedFields: response.data.updated_fields || {},
         message: "Datos actualizados correctamente",
       };
     } catch (error) {
-      let errorMessage = "Error al actualizar los datos";
-
-      if (error.response) {
-        errorMessage = error.response.data?.error?.message || error.response.data?.message || errorMessage;
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-
-      setError(errorMessage);
+      setError(error.error?.message || "Error al actualizar");
 
       return {
         success: false,
-        error: errorMessage,
+        error: error.error || error,
+        rawError: error,
       };
     } finally {
       setIsLoading(false);

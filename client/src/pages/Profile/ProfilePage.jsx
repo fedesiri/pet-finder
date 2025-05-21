@@ -39,6 +39,7 @@ import { AuthContext } from "../../context/AuthContext";
 import { usePetsFromUser } from "../../hooks/usePetsFromUser";
 import { useUpdateUser } from "../../hooks/useUpdateUser";
 import { useUserProfile } from "../../hooks/useUserProfile";
+import { translateError } from "../../utils/errors-translations";
 
 const { Title, Text } = Typography;
 
@@ -104,6 +105,13 @@ const ProfilePage = () => {
 
         setEditingState({ visible: false, field: null, currentValue: "" });
         refreshProfile();
+      } else {
+        const userFriendlyMessage = translateError(result.error);
+        messageApi.open({
+          type: "error",
+          content: userFriendlyMessage,
+          duration: 5,
+        });
       }
     } else {
       setEditingState({ visible: false, field: null, currentValue: "" });

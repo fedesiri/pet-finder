@@ -181,9 +181,19 @@ export const updateUser = async (token, data) => {
         "Content-Type": "application/json",
       },
     });
-    return response.data;
+    return response.data; // Devuelve la respuesta directa del backend
   } catch (error) {
-    console.error("Error updated user:", error);
-    throw error;
+    // Si hay respuesta de error del backend, la devuelve tal cual
+    if (error.response) {
+      throw error.response.data; // Esto lanza EXACTAMENTE lo que el backend respondió
+    }
+    // Para errores de red u otros, crea una estructura similar
+    throw {
+      success: false,
+      error: {
+        message: "Error de conexión",
+        description: error.message,
+      },
+    };
   }
 };
