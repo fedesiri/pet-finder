@@ -6,39 +6,57 @@ export const useUserProfile = () => {
   const { user } = useContext(AuthContext);
   const token = user?.accessToken;
 
-  const [userData, setUserData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [state, setState] = useState({
+    userData: null,
+    loading: true,
+    error: null,
+    addresses: [],
+  });
 
   const fetchUserProfile = useCallback(async () => {
     if (!token) return;
 
     try {
-      setLoading(true);
-      setError(null);
+      setState((prev) => ({ ...prev, loading: true, error: null }));
       const response = await getUserProfile(token);
-      setUserData(response.data);
+      setState({
+        userData: response.data,
+        addresses: response.data?.addresses || [],
+        loading: false,
+        error: null,
+      });
     } catch (err) {
-      setError(err);
-      console.error("Error al obtener el perfil:", err);
-    } finally {
-      setLoading(false);
+      setState((prev) => ({
+        ...prev,
+        loading: false,
+        error: err,
+      }));
     }
   }, [token]);
 
-  const refreshProfile = () => {
+  const refreshProfile = useCallback(() => {
     fetchUserProfile();
-  };
+  }, [fetchUserProfile]);
+
+  const updateLocalUserData = useCallback((updates) => {
+    setState((prev) => ({
+      ...prev,
+      userData: prev.userData ? { ...prev.userData, ...updates } : null,
+      // Actualiza addresses si es necesario
+      addresses: updates.addresses ? updates.addresses : prev.addresses,
+    }));
+  }, []);
 
   useEffect(() => {
     fetchUserProfile();
   }, [fetchUserProfile]);
 
   return {
-    userData,
-    loading,
-    error,
-    addresses: userData?.addresses || [],
+    userData: state.userData,
+    loading: state.loading,
+    error: state.error,
+    addresses: state.addresses,
     refreshProfile,
+    setUserData: updateLocalUserData,
   };
 };

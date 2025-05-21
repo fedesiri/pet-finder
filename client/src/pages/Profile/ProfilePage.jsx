@@ -8,6 +8,7 @@ import {
   Dropdown,
   Empty,
   List,
+  message,
   Row,
   Space,
   Spin,
@@ -30,23 +31,84 @@ import {
   FaUser,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import EditFieldModal from "../../components/profile/EditFieldModal";
 import RequestTagModal from "../../components/RequestTagModal";
 import AddressCard from "../../components/ui/AddressCard";
 import PetCard from "../../components/ui/PetCard";
 import { AuthContext } from "../../context/AuthContext";
 import { usePetsFromUser } from "../../hooks/usePetsFromUser";
+import { useUpdateUser } from "../../hooks/useUpdateUser";
 import { useUserProfile } from "../../hooks/useUserProfile";
 
 const { Title, Text } = Typography;
 
 const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState("pets");
-  const { logout } = useContext(AuthContext);
-  const { userData, loading, error } = useUserProfile();
+  const { logout, user } = useContext(AuthContext);
+  const token = user?.accessToken;
+  const {
+    userData,
+    loading,
+    error,
+    addresses,
+    loading: addressesLoading,
+    setUserData,
+    refreshProfile,
+  } = useUserProfile();
   const { pets, loading: petsLoading, error: petsError } = usePetsFromUser();
   const navigate = useNavigate();
   const [requestTagModalVisible, setRequestTagModalVisible] = useState(false);
-  const { addresses, loading: addressesLoading } = useUserProfile();
+  const [editingState, setEditingState] = useState({
+    visible: false,
+    field: null,
+    currentValue: "",
+  });
+  const [messageApi, contextHolder] = message.useMessage();
+  const { updateUserData, isLoading: isUpdating } = useUpdateUser();
+
+  const getFieldTitle = (field) => {
+    const titles = {
+      name: "Nombre completo",
+      email: "Email",
+      phone: "Teléfono",
+    };
+    return titles[field] || field;
+  };
+
+  const handleEditClick = (field, currentValue) => {
+    setEditingState({
+      visible: true,
+      field,
+      currentValue,
+    });
+  };
+
+  const handleSave = async (newValue) => {
+    if (newValue !== editingState.currentValue) {
+      const result = await updateUserData(token, {
+        [editingState.field]: newValue,
+      });
+
+      if (result.success) {
+        const updatedField = Object.keys(result.updatedFields)[0];
+        const updatedValue = result.updatedFields[updatedField];
+        setUserData((prev) => ({
+          ...prev,
+          [updatedField]: updatedValue,
+        }));
+
+        messageApi.open({
+          type: "success",
+          content: "Datos actualizados correctamente!",
+        });
+
+        setEditingState({ visible: false, field: null, currentValue: "" });
+        refreshProfile();
+      }
+    } else {
+      setEditingState({ visible: false, field: null, currentValue: "" });
+    }
+  };
 
   const userMenu = {
     items: [
@@ -141,6 +203,13 @@ const ProfilePage = () => {
     return <div>No se encontraron datos del perfil</div>;
   }
 
+  const renderFieldItem = (field, value, icon) => (
+    <List.Item>
+      <List.Item.Meta avatar={icon} title={getFieldTitle(field)} description={value || "No especificado"} />
+      <Button type="text" icon={<FaEdit />} onClick={() => handleEditClick(field, value)} />
+    </List.Item>
+  );
+
   const tabItems = [
     {
       key: "data",
@@ -153,18 +222,9 @@ const ProfilePage = () => {
       children: (
         <Space direction="vertical" size="middle" style={{ width: "100%" }}>
           <List itemLayout="horizontal">
-            <List.Item>
-              <List.Item.Meta avatar={<FaIdCard />} title="Nombre completo" description={`${userData.name}`} />
-              <Button type="text" icon={<FaEdit />} />
-            </List.Item>
-            <List.Item>
-              <List.Item.Meta avatar={<FaEnvelope />} title="Email" description={userData.email} />
-              <Button type="text" icon={<FaEdit />} />
-            </List.Item>
-            <List.Item>
-              <List.Item.Meta avatar={<FaPhone />} title="Teléfono" description={userData.phone} />
-              <Button type="text" icon={<FaEdit />} />
-            </List.Item>
+            {renderFieldItem("name", userData.name, <FaIdCard />)}
+            {renderFieldItem("email", userData.email, <FaEnvelope />)}
+            {renderFieldItem("phone", userData.phone, <FaPhone />)}
           </List>
 
           <Divider orientation="left" plain>
@@ -211,6 +271,7 @@ const ProfilePage = () => {
 
   return (
     <>
+      {contextHolder}
       <Row justify="space-between" align="middle" style={{ marginBottom: "24px" }}>
         <Col>
           <Title level={3}>
@@ -243,6 +304,20 @@ const ProfilePage = () => {
         onCancel={() => setRequestTagModalVisible(false)}
         userAddresses={addresses}
         loading={addressesLoading}
+      />
+      <EditFieldModal
+        visible={editingState.visible}
+        field={editingState.field}
+        currentValue={editingState.currentValue}
+        onCancel={() =>
+          setEditingState({
+            visible: false,
+            field: null,
+            currentValue: "",
+          })
+        }
+        onSave={handleSave}
+        loading={isUpdating}
       />
     </>
   );

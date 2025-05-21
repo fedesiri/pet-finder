@@ -172,3 +172,18 @@ export const getLostPets = async (token, { page = 1, items_per_page = 10, ...fil
     throw error;
   }
 };
+
+export const updateUser = async (token, data) => {
+  try {
+    const response = await api.patch("/pets/update-user", data, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error updated user:", error);
+    throw error;
+  }
+};

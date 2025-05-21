@@ -17,27 +17,16 @@ export const useLostPets = ({ initialPage = 1, initialItemsPerPage = 10, initial
     total_items: 0,
   });
 
-  // Estado inicial seguro
-  // const [filters, setFilters] = useState({
-  //   is_active: true,
-  //   page: initialPage,
-  //   items_per_page: initialItemsPerPage,
-  //   province_id: null,
-  //   locality_id: null,
-  //   ...initialFilters,
-  // });
-
   const [filters, setFilters] = useState({
-    // Propiedades que NO deben contar como "filtros activos":
-    is_active: true, // ← No es un filtro de usuario
-    page: initialPage, // ← No es un filtro de usuario
-    items_per_page: initialItemsPerPage, // ← No es un filtro de usuario
+    is_active: true,
+    page: initialPage,
+    items_per_page: initialItemsPerPage,
     // Filtros reales (inicializados como null/undefined):
     province_id: null,
     locality_id: null,
     name: undefined,
     breed: undefined,
-    ...initialFilters, // Sobrescribe solo si initialFilters tiene valores válidos
+    ...initialFilters,
   });
 
   // Actualizar filtros cuando los datos del usuario están disponibles
