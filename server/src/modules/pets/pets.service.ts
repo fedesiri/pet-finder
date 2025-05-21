@@ -1,19 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import { Species } from '@prisma/client';
 import * as dayjs from 'dayjs';
+import { UpdateRequest } from 'firebase-admin/auth';
 import * as QRCode from 'qrcode';
+import { FirebaseAuthService } from 'src/auth/firebase-auth.service';
 import { RegisterUserDto, RegisterUserOutputDto } from './dto/create-user-dto';
 import { PetDetailDto } from './dto/get-pet-datail.dto';
 import { PetResponseDto } from './dto/get-pets-from-user';
 import { UserProfileResponseDto } from './dto/get-user-profile.dto';
 import { RegisterPetWithCodeDto, RequestPetCodeDto } from './dto/pet-code.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { PetWithUser } from './pets.controller';
 import { PetsError } from './pets.errors';
 import { PetsRepository } from './prisma-pets-repository';
 
 @Injectable()
 export class PetsService {
-  constructor(private readonly petsRepository: PetsRepository) {}
+  constructor(
+    private readonly petsRepository: PetsRepository,
+    private readonly firebaseAuthService: FirebaseAuthService,
+  ) {}
 
   async registerUser(input: RegisterUserDto): Promise<RegisterUserOutputDto> {
     const { users } = input;
@@ -332,5 +338,69 @@ export class PetsService {
           })) ?? [],
       })),
     };
+  }
+
+  private async validateEmailUniqueness(
+    user_id: string,
+    email: string,
+  ): Promise<void> {
+    const existingUser = await this.petsRepository.findByEmail(email);
+    if (existingUser && existingUser.id !== user_id) {
+      throw new PetsError('PET-603');
+    }
+  }
+
+  private async validatePhoneUniqueness(
+    user_id: string,
+    phone: string,
+  ): Promise<void> {
+    const existingUser = await this.petsRepository.findByPhone(phone);
+    if (existingUser && existingUser.id !== user_id) {
+      throw new PetsError('PET-604');
+    }
+  }
+
+  async updateUser(
+    user_id: string,
+    data: UpdateUserDto,
+  ): Promise<{ updated_fields: Partial<UpdateUserDto> }> {
+    const updated_fields: Partial<UpdateUserDto> = {};
+
+    if (data.email) {
+      await this.validateEmailUniqueness(user_id, data.email);
+      updated_fields.email = data.email;
+    }
+
+    if (data.phone) {
+      await this.validatePhoneUniqueness(user_id, data.phone);
+      updated_fields.phone = data.phone;
+    }
+
+    if (data.name) {
+      updated_fields.name = data.name;
+    }
+
+    const firebaseUpdateData: UpdateRequest = {};
+
+    if (data.name) firebaseUpdateData.displayName = data.name;
+    if (data.email) {
+      firebaseUpdateData.email = data.email;
+      firebaseUpdateData.emailVerified = false;
+    }
+    if (data.phone) {
+      firebaseUpdateData.phoneNumber =
+        this.firebaseAuthService.formatPhoneNumber(data.phone);
+    }
+
+    try {
+      await this.firebaseAuthService.updateUser(user_id, firebaseUpdateData);
+
+      await this.petsRepository.updateUser(user_id, data);
+
+      return { updated_fields };
+    } catch (error) {
+      console.error('Error en updateUser:', error);
+      throw new PetsError('PET-702');
+    }
   }
 }

@@ -175,7 +175,7 @@ model User {
   name        String
   email       String   @unique
   password    String
-  phone       String
+  phone       String   @unique
   external_id String   @unique
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt

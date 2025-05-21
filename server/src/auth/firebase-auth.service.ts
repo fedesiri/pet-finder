@@ -23,4 +23,19 @@ export class FirebaseAuthService {
       throw new Error('Token inválido: ' + error.message);
     }
   }
+
+  async updateUser(uid: string, updateData: admin.auth.UpdateRequest) {
+    try {
+      return await admin.auth().updateUser(uid, updateData);
+    } catch (error) {
+      throw new Error(
+        'Error al actualizar usuario en Firebase: ' + error.message,
+      );
+    }
+  }
+
+  public formatPhoneNumber(phone: string): string {
+    // Formatea el número al estándar E.164 si es necesario
+    return phone.startsWith('+') ? phone : `+${phone}`;
+  }
 }

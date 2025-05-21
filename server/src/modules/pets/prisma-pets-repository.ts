@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { Pet, PetCode, Species } from '@prisma/client';
+import { Pet, PetCode, Species, User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import * as dayjs from 'dayjs';
 import { DatabaseService } from 'src/helpers/database.service';
 import { CreateUserDto } from './dto/create-user-dto';
 import { PetWithPhotosAndUsersRepositoryDto } from './dto/get-pet-datail.dto';
 import { PetWithPhotosRepositoryDto } from './dto/get-pets-from-user';
 import { UserProfileOutputRepositoryDto } from './dto/get-user-profile.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { PetWithUser } from './pets.controller';
 import { PetsError } from './pets.errors';
 
@@ -316,6 +318,30 @@ export class PetsRepository {
             },
           },
         },
+      },
+    });
+  }
+
+  async findByEmail(email: string): Promise<User | null> {
+    return this.databaseService.user.findUnique({
+      where: { email },
+    });
+  }
+
+  async findByPhone(phone: string): Promise<User | null> {
+    return this.databaseService.user.findUnique({
+      where: { phone },
+    });
+  }
+
+  async updateUser(user_id: string, data: UpdateUserDto): Promise<User> {
+    return this.databaseService.user.update({
+      where: { external_id: user_id },
+      data: {
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        updated_at: dayjs().toDate(),
       },
     });
   }
