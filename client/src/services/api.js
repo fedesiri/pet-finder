@@ -181,19 +181,28 @@ export const updateUser = async (token, data) => {
         "Content-Type": "application/json",
       },
     });
-    return response.data; // Devuelve la respuesta directa del backend
+    return response.data;
   } catch (error) {
-    // Si hay respuesta de error del backend, la devuelve tal cual
     if (error.response) {
-      throw error.response.data; // Esto lanza EXACTAMENTE lo que el backend respondió
+      throw error.response.data;
     }
-    // Para errores de red u otros, crea una estructura similar
-    throw {
-      success: false,
-      error: {
-        message: "Error de conexión",
-        description: error.message,
+    throw error;
+  }
+};
+
+export const updatePet = async (token, pet_id, data) => {
+  try {
+    const response = await api.patch(`/pets/${pet_id}`, data, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
-    };
+    });
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw error.response.data;
+    }
+    throw error;
   }
 };

@@ -185,9 +185,6 @@ const ProfilePage = () => {
               }}
               onClick={() => navigate(`/pets/${pet.id}`)}
               actions={[
-                <Button key="edit" type="link" icon={<FaEdit />} onClick={() => navigate(`/edit-pet/${pet.id}`)}>
-                  Editar
-                </Button>,
                 <Button key="qr" type="link" icon={<FaQrcode />} onClick={() => navigate(`/pet-qr/${pet.pet_code_id}`)}>
                   QR
                 </Button>,
