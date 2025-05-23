@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { Pet, PetCode, Species, User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import * as dayjs from 'dayjs';
 import { DatabaseService } from 'src/helpers/database.service';
 import { CreateUserDto } from './dto/create-user-dto';
 import { PetWithPhotosAndUsersRepositoryDto } from './dto/get-pet-datail.dto';
 import { PetWithPhotosRepositoryDto } from './dto/get-pets-from-user';
 import { UserProfileOutputRepositoryDto } from './dto/get-user-profile.dto';
+import { UpdatePetDto } from './dto/update-pet.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PetWithUser } from './pets.controller';
 import { PetsError } from './pets.errors';
@@ -341,7 +341,33 @@ export class PetsRepository {
         name: data.name,
         email: data.email,
         phone: data.phone,
-        updated_at: dayjs().toDate(),
+      },
+    });
+  }
+
+  async petExists(pet_id: string, user_id: string): Promise<boolean> {
+    const pet = await this.databaseService.pet.findFirst({
+      where: {
+        id: pet_id,
+        users: {
+          some: {
+            external_id: user_id,
+          },
+        },
+      },
+    });
+    return !!pet;
+  }
+
+  async updatePet(update_data: {
+    pet_id: string;
+    data: Partial<UpdatePetDto>;
+  }): Promise<Pet> {
+    const { pet_id, data } = update_data;
+    return this.databaseService.pet.update({
+      where: { id: pet_id },
+      data: {
+        ...data,
       },
     });
   }

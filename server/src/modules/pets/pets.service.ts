@@ -9,6 +9,7 @@ import { PetDetailDto } from './dto/get-pet-datail.dto';
 import { PetResponseDto } from './dto/get-pets-from-user';
 import { UserProfileResponseDto } from './dto/get-user-profile.dto';
 import { RegisterPetWithCodeDto, RequestPetCodeDto } from './dto/pet-code.dto';
+import { UpdatePetDto } from './dto/update-pet.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PetWithUser } from './pets.controller';
 import { PetsError } from './pets.errors';
@@ -402,5 +403,33 @@ export class PetsService {
       console.error('Error en updateUser:', error);
       throw new PetsError('PET-702');
     }
+  }
+
+  async updatePet(update_data: {
+    pet_id: string;
+    user_id: string;
+    data: UpdatePetDto;
+  }): Promise<{ updated_fields: Partial<UpdatePetDto> }> {
+    const { pet_id, user_id, data } = update_data;
+
+    const petExists = await this.petsRepository.petExists(pet_id, user_id);
+    if (!petExists) throw new PetsError('PET-807');
+
+    const updated_fields: Partial<UpdatePetDto> = {};
+
+    if (data.name !== undefined) updated_fields.name = data.name;
+    if (data.species !== undefined) updated_fields.species = data.species;
+    if (data.breed !== undefined) updated_fields.breed = data.breed;
+    if (data.color !== undefined) updated_fields.color = data.color;
+    if (data.distinctive_marks !== undefined)
+      updated_fields.distinctive_marks = data.distinctive_marks;
+    if (data.birthdate !== undefined) updated_fields.birthdate = data.birthdate;
+
+    if (Object.keys(updated_fields).length === 0) {
+      throw new PetsError('PET-703');
+    }
+    await this.petsRepository.updatePet({ pet_id, data: updated_fields });
+
+    return { updated_fields };
   }
 }

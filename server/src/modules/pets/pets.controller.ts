@@ -16,6 +16,7 @@ import { PetDetailDto } from './dto/get-pet-datail.dto';
 import { PetResponseDto } from './dto/get-pets-from-user';
 import { UserProfileResponseDto } from './dto/get-user-profile.dto';
 import { RegisterPetWithCodeDto, RequestPetCodeDto } from './dto/pet-code.dto';
+import { UpdatePetDto } from './dto/update-pet.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PetsService } from './pets.service';
 
@@ -310,6 +311,38 @@ export class PetsController {
         error instanceof Error
           ? error
           : new Error('Error in pets/public/:id controller');
+      console.error(error);
+      return response;
+    }
+  }
+
+  @Patch(':pet_id')
+  @UseGuards(AuthGuard)
+  async updatePet(
+    @Param('pet_id') pet_id: string,
+    @CurrentUser() user: { id: string },
+    @Body() data: UpdatePetDto,
+  ): Promise<Envelope<{ updatedFields: Partial<UpdatePetDto> }>> {
+    const response = {
+      success: true,
+      data: null,
+      error: null,
+      pagination: null,
+    };
+
+    try {
+      response.data = await this.petsService.updatePet({
+        pet_id,
+        user_id: user.id,
+        data,
+      });
+      return response;
+    } catch (error) {
+      response.success = false;
+      response.error =
+        error instanceof Error
+          ? error
+          : new Error('Error in PATCH pets/:pet_id controller');
       console.error(error);
       return response;
     }

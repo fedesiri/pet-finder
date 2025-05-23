@@ -19,6 +19,7 @@ const dictionary = {
   'PET-700': `Year must be between 2000 and ${dayjs().year()}`,
   'PET-701': 'Invalid date. Must be YYYY-MM-DD format.',
   'PET-702': 'User update failed',
+  'PET-703': 'Pet update failed',
   'PET-800': 'qr_code is allowed.',
   'PET-801': 'No pets were found associated with this QR code.',
   'PET-802': 'User not found or user not created',
